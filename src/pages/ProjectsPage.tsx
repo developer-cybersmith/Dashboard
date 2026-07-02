@@ -5,7 +5,6 @@ import type { Project, ProjectTester } from '../types';
 import { formatCurrency, formatDate } from '../utils/format';
 import { projectTesterCost } from '../utils/analytics';
 import { clampPercent } from '../utils/projectProgress';
-import { StatusBadge } from '../components/StatusBadge';
 
 export function ProjectsPage() {
   const { data, metrics, updateProject, addProject, deleteProject } =
@@ -86,7 +85,8 @@ export function ProjectsPage() {
                 income: 0,
                 startDate: '',
                 endDate: '',
-                status: 'Pending',
+                completedWork: '',
+                pendingWork: '',
                 completedPercent: 0,
                 testers: [],
               })
@@ -125,8 +125,9 @@ export function ProjectsPage() {
                 <th>Income (₹)</th>
                 <th>Start Date</th>
                 <th>End Date</th>
-                <th>Status</th>
-                <th>% Completed</th>
+                <th>Completed Work</th>
+                <th>Pending Work</th>
+                <th>% Done</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -236,14 +237,28 @@ export function ProjectsPage() {
                       </td>
                       <td>
                         <input
-                          value={draft.status}
+                          value={draft.completedWork}
                           onChange={(e) =>
                             setDraft(project.id, (p) => ({
                               ...p,
-                              status: e.target.value,
+                              completedWork: e.target.value,
                             }))
                           }
-                          className="status-input"
+                          className="work-input"
+                          placeholder="e.g. Network scan, VAPT"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          value={draft.pendingWork}
+                          onChange={(e) =>
+                            setDraft(project.id, (p) => ({
+                              ...p,
+                              pendingWork: e.target.value,
+                            }))
+                          }
+                          className="work-input"
+                          placeholder="e.g. Reporting, Follow-up"
                         />
                       </td>
                       <td>
@@ -261,7 +276,7 @@ export function ProjectsPage() {
                             }))
                           }
                           className="percent-input"
-                          title="Percentage of project completed"
+                          title="Percentage of project completed (0–100)"
                         />
                       </td>
                       <td className="action-cell">
@@ -284,7 +299,7 @@ export function ProjectsPage() {
                     </tr>
                     {isOpen && (
                       <tr className="detail-row">
-                        <td colSpan={11}>
+                        <td colSpan={12}>
                           <div className="tester-section">
                             <div className="tester-header">
                               <div>
@@ -341,8 +356,15 @@ export function ProjectsPage() {
                                 </div>
                               ))}
                             </div>
-                            <div className="preview-status">
-                              Preview: <StatusBadge status={draft.status} />
+                            <div className="progress-preview">
+                              <span className="progress-tag completed-tag">
+                                ✓ Completed: {draft.completedPercent}%
+                                {draft.completedWork && ` — ${draft.completedWork}`}
+                              </span>
+                              <span className="progress-tag pending-tag">
+                                ⏳ Pending: {100 - draft.completedPercent}%
+                                {draft.pendingWork && ` — ${draft.pendingWork}`}
+                              </span>
                             </div>
                           </div>
                         </td>
@@ -356,7 +378,7 @@ export function ProjectsPage() {
               <tr>
                 <td colSpan={5}><strong>Total Income</strong></td>
                 <td><strong>{formatCurrency(totalIncome)}</strong></td>
-                <td colSpan={5} />
+                <td colSpan={6} />
               </tr>
             </tfoot>
           </table>

@@ -7,6 +7,8 @@ export function clampPercent(value: number): number {
 export function normalizeProject(project: Project): Project {
   return {
     ...project,
+    completedWork: project.completedWork ?? '',
+    pendingWork: project.pendingWork ?? '',
     completedPercent: clampPercent(Number(project.completedPercent) || 0),
   };
 }

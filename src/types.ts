@@ -19,7 +19,8 @@ export interface Project {
   income: number;
   startDate: string;
   endDate: string;
-  status: string;
+  completedWork: string;
+  pendingWork: string;
   completedPercent: number;
   testers: ProjectTester[];
 }
@@ -29,12 +30,6 @@ export interface AppData {
   projects: Project[];
 }
 
-export type ProjectStatusCategory =
-  | 'Completed'
-  | 'Ongoing'
-  | 'Pending'
-  | 'Revalidation';
-
 export interface DashboardMetrics {
   totalRevenue: number;
   totalProjects: number;
@@ -42,7 +37,6 @@ export interface DashboardMetrics {
   totalSalaryCost: number;
   grossProfit: number;
   profitMargin: number;
-  statusBreakdown: { name: ProjectStatusCategory; value: number; color: string }[];
   companyPerformance: { company: string; revenue: number }[];
   salaryDistribution: { name: string; salary: number }[];
   monthlyTrend: { month: string; revenue: number; salary: number }[];

@@ -101,7 +101,6 @@
       "income": 200000,
       "startDate": "2026-02-01",
       "endDate": "2026-06-12",
-      "status": "web Completed, cloud , network, red teaming is pending",
       "testers": [
         {
           "name": "Rupali",
@@ -125,7 +124,9 @@
         }
       ],
       "key": "CSS|Encora",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "web Completed, cloud , network, red teaming is pending",
+      "pendingWork": ""
     },
     {
       "id": 2,
@@ -136,7 +137,6 @@
       "income": 0,
       "startDate": "",
       "endDate": "",
-      "status": "Pending",
       "testers": [
         {
           "name": "Biswajeet",
@@ -160,7 +160,9 @@
         }
       ],
       "key": "Mitkat|RXIL",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "Pending",
+      "pendingWork": ""
     },
     {
       "id": 3,
@@ -171,7 +173,6 @@
       "income": 0,
       "startDate": "2025-10-01",
       "endDate": "",
-      "status": "Pending",
       "testers": [
         {
           "name": "Biswajeet",
@@ -187,7 +188,9 @@
         }
       ],
       "key": "Mitkat|Lumina",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "Pending",
+      "pendingWork": ""
     },
     {
       "id": 4,
@@ -198,7 +201,6 @@
       "income": 0,
       "startDate": "2026-06-01",
       "endDate": "",
-      "status": "Pending",
       "testers": [
         {
           "name": "Biswajeet",
@@ -210,7 +212,9 @@
         }
       ],
       "key": "Mitkat|LVP",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "Pending",
+      "pendingWork": ""
     },
     {
       "id": 5,
@@ -221,7 +225,6 @@
       "income": 0,
       "startDate": "2026-05-07",
       "endDate": "2026-06-02",
-      "status": "revalidation on hold by sarvesh sir",
       "testers": [
         {
           "name": "Rupali",
@@ -229,7 +232,9 @@
         }
       ],
       "key": "CSS|Advantage go",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "revalidation on hold by sarvesh sir",
+      "pendingWork": ""
     },
     {
       "id": 6,
@@ -240,7 +245,6 @@
       "income": 0,
       "startDate": "2026-05-07",
       "endDate": "2026-05-28",
-      "status": "Revalidation",
       "testers": [
         {
           "name": "Rupali",
@@ -260,7 +264,9 @@
         }
       ],
       "key": "CSS|UNO Ai",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "Revalidation",
+      "pendingWork": ""
     },
     {
       "id": 7,
@@ -271,7 +277,6 @@
       "income": 0,
       "startDate": "2026-05-18",
       "endDate": "",
-      "status": "revalidation",
       "testers": [
         {
           "name": "Parimal",
@@ -291,7 +296,9 @@
         }
       ],
       "key": "CSS|Decklar",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "revalidation",
+      "pendingWork": ""
     },
     {
       "id": 8,
@@ -302,7 +309,6 @@
       "income": 0,
       "startDate": "2026-06-01",
       "endDate": "",
-      "status": "Blackbox testing",
       "testers": [
         {
           "name": "Biswajeet",
@@ -322,7 +328,9 @@
         }
       ],
       "key": "Mitkat|Mehery",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "Blackbox testing",
+      "pendingWork": ""
     },
     {
       "id": 9,
@@ -333,7 +341,6 @@
       "income": 0,
       "startDate": "2026-01-01",
       "endDate": "",
-      "status": "revalidation (application, cloud)",
       "testers": [
         {
           "name": "Rupali",
@@ -341,7 +348,9 @@
         }
       ],
       "key": "CSS|Annadarpan phase 2",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "revalidation (application, cloud)",
+      "pendingWork": ""
     },
     {
       "id": 10,
@@ -352,7 +361,6 @@
       "income": 0,
       "startDate": "2025-03-01",
       "endDate": "",
-      "status": "Policy making",
       "testers": [
         {
           "name": "Sumit",
@@ -364,7 +372,9 @@
         }
       ],
       "key": "CSS|Arjas Steel",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "Policy making",
+      "pendingWork": ""
     },
     {
       "id": 11,
@@ -375,7 +385,6 @@
       "income": 0,
       "startDate": "2025-04-02",
       "endDate": "",
-      "status": "contract renewal",
       "testers": [
         {
           "name": "Sumit",
@@ -387,7 +396,9 @@
         }
       ],
       "key": "CSS|ASG",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "contract renewal",
+      "pendingWork": ""
     },
     {
       "id": 12,
@@ -398,7 +409,6 @@
       "income": 0,
       "startDate": "",
       "endDate": "",
-      "status": "Pending",
       "testers": [
         {
           "name": "Parimal",
@@ -406,7 +416,9 @@
         }
       ],
       "key": "Mitkat|Jio Blackrock",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "Pending",
+      "pendingWork": ""
     },
     {
       "id": 13,
@@ -417,7 +429,6 @@
       "income": 0,
       "startDate": "",
       "endDate": "",
-      "status": "Pending",
       "testers": [
         {
           "name": "Parimal",
@@ -425,7 +436,9 @@
         }
       ],
       "key": "Mitkat|Paraviste",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "Pending",
+      "pendingWork": ""
     },
     {
       "id": 14,
@@ -436,7 +449,6 @@
       "income": 0,
       "startDate": "",
       "endDate": "",
-      "status": "Pending",
       "testers": [
         {
           "name": "Sanchit",
@@ -448,7 +460,9 @@
         }
       ],
       "key": "CSS|Arjas SAP VAPT",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "Pending",
+      "pendingWork": ""
     },
     {
       "id": 15,
@@ -459,7 +473,6 @@
       "income": 0,
       "startDate": "",
       "endDate": "",
-      "status": "Revalidation",
       "testers": [
         {
           "name": "Parimal",
@@ -467,7 +480,9 @@
         }
       ],
       "key": "Mitkat|Venture",
-      "completedPercent": 0
+      "completedPercent": 0,
+      "completedWork": "Revalidation",
+      "pendingWork": ""
     }
   ]
 }

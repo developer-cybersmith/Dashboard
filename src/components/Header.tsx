@@ -1,4 +1,4 @@
-import { Search, Bell, Maximize2, RefreshCw, Wifi, WifiOff, LogOut } from 'lucide-react';
+import { Search, Bell, RefreshCw, Wifi, WifiOff, LogOut, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
@@ -6,6 +6,7 @@ import { useData } from '../context/DataContext';
 interface HeaderProps {
   search: string;
   onSearchChange: (value: string) => void;
+  onMenuToggle: () => void;
 }
 
 function initials(name: string) {
@@ -17,7 +18,7 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-export function Header({ search, onSearchChange }: HeaderProps) {
+export function Header({ search, onSearchChange, onMenuToggle }: HeaderProps) {
   const { connection, refresh } = useData();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -29,15 +30,24 @@ export function Header({ search, onSearchChange }: HeaderProps) {
 
   return (
     <header className="top-header">
+      <button
+        type="button"
+        className="icon-btn mobile-menu-btn"
+        aria-label="Toggle menu"
+        onClick={onMenuToggle}
+      >
+        <Menu size={20} />
+      </button>
+
       <div className="search-box">
         <Search size={18} />
         <input
           type="text"
-          placeholder="Search projects, employees, companies..."
+          placeholder="Search projects, employees…"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
         />
-        <kbd>⌘ K</kbd>
+        <kbd className="search-kbd">⌘ K</kbd>
       </div>
 
       <div className="header-actions">
@@ -67,12 +77,9 @@ export function Header({ search, onSearchChange }: HeaderProps) {
           <Bell size={18} />
           <span className="badge-dot" />
         </button>
-        <button type="button" className="icon-btn" aria-label="Fullscreen">
-          <Maximize2 size={18} />
-        </button>
         <div className="user-profile">
           <div className="avatar">{user ? initials(user.name) : 'MA'}</div>
-          <div>
+          <div className="user-info">
             <strong>{user?.name ?? 'Mitkat Admin'}</strong>
             <span>{user?.role ?? 'Administrator'}</span>
           </div>

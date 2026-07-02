@@ -69,7 +69,8 @@ function parseProjects(rows: Record<string, unknown>[]): Project[] {
         income: Number(row['Project Income']) || 0,
         startDate: formatExcelDate(row['Start Date']),
         endDate: formatExcelDate(row['End Date']),
-        status: row['Status'] ? String(row['Status']).trim() : 'Pending',
+        completedWork: '',
+        pendingWork: '',
         completedPercent: 0,
         testers: [],
       };

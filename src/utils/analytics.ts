@@ -1,10 +1,4 @@
-import type {
-  AppData,
-  DashboardMetrics,
-  Project,
-  ProjectStatusCategory,
-} from '../types';
-import { normalizeStatus, getStatusColor } from './status';
+import type { AppData, DashboardMetrics, Project } from '../types';
 import { daysUntil } from './format';
 
 const MONTHS = [
@@ -23,28 +17,6 @@ export function computeMetrics(data: AppData): DashboardMetrics {
   const grossProfit = totalRevenue - totalSalaryCost;
   const profitMargin =
     totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
-
-  const statusCounts: Record<ProjectStatusCategory, number> = {
-    Completed: 0,
-    Ongoing: 0,
-    Pending: 0,
-    Revalidation: 0,
-  };
-
-  projects.forEach((p) => {
-    const cat = normalizeStatus(p.status);
-    statusCounts[cat]++;
-  });
-
-  const statusBreakdown = (
-    Object.entries(statusCounts) as [ProjectStatusCategory, number][]
-  )
-    .filter(([, v]) => v > 0)
-    .map(([name, value]) => ({
-      name,
-      value,
-      color: getStatusColor(name),
-    }));
 
   const companyMap = new Map<string, number>();
   projects.forEach((p) => {
@@ -90,7 +62,6 @@ export function computeMetrics(data: AppData): DashboardMetrics {
     totalSalaryCost,
     grossProfit,
     profitMargin,
-    statusBreakdown,
     companyPerformance,
     salaryDistribution,
     monthlyTrend,

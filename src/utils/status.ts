@@ -1,4 +1,4 @@
-import type { ProjectStatusCategory } from '../types';
+export type ProjectStatusCategory = 'Completed' | 'Ongoing' | 'Pending' | 'Revalidation';
 
 const STATUS_COLORS: Record<ProjectStatusCategory, string> = {
   Completed: '#22c55e',
@@ -8,23 +8,14 @@ const STATUS_COLORS: Record<ProjectStatusCategory, string> = {
 };
 
 export function normalizeStatus(status: string): ProjectStatusCategory {
-  const s = status.toLowerCase();
+  const s = (status || '').toLowerCase();
   if (s.includes('completed') && !s.includes('pending')) return 'Completed';
   if (s.includes('revalid')) return 'Revalidation';
-  if (
-    s.includes('pending') ||
-    s.includes('hold') ||
-    s.includes('paused') ||
-    s.includes('waiting')
-  )
+  if (s.includes('pending') || s.includes('hold') || s.includes('paused') || s.includes('waiting'))
     return 'Pending';
   if (
-    s.includes('ongoing') ||
-    s.includes('progress') ||
-    s.includes('testing') ||
-    s.includes('blackbox') ||
-    s.includes('policy') ||
-    s.includes('contract') ||
+    s.includes('ongoing') || s.includes('progress') || s.includes('testing') ||
+    s.includes('blackbox') || s.includes('policy') || s.includes('contract') ||
     s.includes('renewal')
   )
     return 'Ongoing';
@@ -34,10 +25,3 @@ export function normalizeStatus(status: string): ProjectStatusCategory {
 export function getStatusColor(category: ProjectStatusCategory): string {
   return STATUS_COLORS[category];
 }
-
-export const STATUS_OPTIONS: ProjectStatusCategory[] = [
-  'Completed',
-  'Ongoing',
-  'Pending',
-  'Revalidation',
-];

@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { StatCard } from '../components/StatCard';
-import { StatusBadge } from '../components/StatusBadge';
 import { formatCurrency, formatDate, formatPercent } from '../utils/format';
 import { getProjectProgressBreakdown } from '../utils/projectProgress';
 
@@ -37,7 +36,6 @@ export function DashboardPage() {
       setSelectedProjectId(null);
       return;
     }
-
     setSelectedProjectId((current) => {
       if (current && data.projects.some((project) => project.id === current)) {
         return current;
@@ -173,7 +171,7 @@ export function DashboardPage() {
           </div>
           {selectedProject ? (
             <>
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
                     data={projectProgressBreakdown}
@@ -181,8 +179,8 @@ export function DashboardPage() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
+                    innerRadius={50}
+                    outerRadius={78}
                     paddingAngle={2}
                   >
                     {projectProgressBreakdown.map((entry) => (
@@ -200,10 +198,20 @@ export function DashboardPage() {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
-              <p className="panel-footer-text">
-                {selectedProject.projectName}: {selectedProject.completedPercent}% completed ·{' '}
-                {100 - selectedProject.completedPercent}% pending
-              </p>
+              <div className="project-work-details">
+                <div className="work-detail-row completed-detail">
+                  <span className="work-detail-label">✓ Completed ({selectedProject.completedPercent}%)</span>
+                  <p className="work-detail-text">
+                    {selectedProject.completedWork || 'No details entered'}
+                  </p>
+                </div>
+                <div className="work-detail-row pending-detail">
+                  <span className="work-detail-label">⏳ Pending ({100 - selectedProject.completedPercent}%)</span>
+                  <p className="work-detail-text">
+                    {selectedProject.pendingWork || 'No details entered'}
+                  </p>
+                </div>
+              </div>
             </>
           ) : (
             <p className="panel-footer-text">Add a project to view completion status</p>
@@ -285,11 +293,10 @@ export function DashboardPage() {
                   <th>Project</th>
                   <th>Company</th>
                   <th>Lead</th>
-                  <th>Testers</th>
                   <th>Income</th>
-                  <th>Start</th>
                   <th>End</th>
-                  <th>Status</th>
+                  <th>Completed Work</th>
+                  <th>Pending Work</th>
                   <th>% Done</th>
                 </tr>
               </thead>
@@ -299,12 +306,15 @@ export function DashboardPage() {
                     <td><strong>{p.projectName}</strong></td>
                     <td>{p.company}</td>
                     <td>{p.projectLead || '—'}</td>
-                    <td>{p.testers.length}</td>
                     <td>{formatCurrency(p.income)}</td>
-                    <td>{formatDate(p.startDate)}</td>
                     <td>{formatDate(p.endDate)}</td>
-                    <td><StatusBadge status={p.status} /></td>
-                    <td>{p.completedPercent}%</td>
+                    <td className="work-cell">{p.completedWork || '—'}</td>
+                    <td className="work-cell">{p.pendingWork || '—'}</td>
+                    <td>
+                      <span className={`pct-badge ${p.completedPercent >= 100 ? 'pct-done' : p.completedPercent >= 50 ? 'pct-mid' : 'pct-low'}`}>
+                        {p.completedPercent}%
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>

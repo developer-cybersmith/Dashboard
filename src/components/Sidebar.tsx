@@ -6,8 +6,14 @@ import {
   Plus,
   Upload,
   Zap,
+  X,
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
+
+interface SidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -21,17 +27,25 @@ const STATUS_TEXT: Record<string, string> = {
   connecting: 'Connecting to backend…',
 };
 
-export function Sidebar() {
+export function Sidebar({ open, onClose }: SidebarProps) {
   const { addEmployee, addProject, connection } = useData();
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${open ? ' sidebar-open' : ''}`}>
       <div className="sidebar-brand">
         <div className="brand-icon">M</div>
         <div>
           <h1>Mitkat</h1>
           <p>Track · Analyze · Grow</p>
         </div>
+        <button
+          type="button"
+          className="icon-btn sidebar-close-btn"
+          aria-label="Close menu"
+          onClick={onClose}
+        >
+          <X size={18} />
+        </button>
       </div>
 
       <nav className="sidebar-nav">
@@ -44,6 +58,7 @@ export function Sidebar() {
             className={({ isActive }) =>
               `nav-link${isActive ? ' active' : ''}`
             }
+            onClick={onClose}
           >
             <span className="nav-link-icon">
               <Icon size={18} />
@@ -60,9 +75,10 @@ export function Sidebar() {
         <button
           type="button"
           className="btn btn-blue"
-          onClick={() =>
-            addEmployee({ name: 'New Employee', designation: '', monthlyPay: 0 })
-          }
+          onClick={() => {
+            addEmployee({ name: 'New Employee', designation: '', monthlyPay: 0 });
+            onClose();
+          }}
         >
           <Plus size={16} />
           Add Employee
@@ -70,7 +86,7 @@ export function Sidebar() {
         <button
           type="button"
           className="btn btn-purple"
-          onClick={() =>
+          onClick={() => {
             addProject({
               company: 'CSS',
               projectName: 'New Project',
@@ -79,11 +95,13 @@ export function Sidebar() {
               income: 0,
               startDate: '',
               endDate: '',
-              status: 'Pending',
+              completedWork: '',
+              pendingWork: '',
               completedPercent: 0,
               testers: [],
-            })
-          }
+            });
+            onClose();
+          }}
         >
           <Plus size={16} />
           Add Project
@@ -103,6 +121,7 @@ export function Sidebar() {
                 );
               }
               e.target.value = '';
+              onClose();
             }}
           />
         </label>

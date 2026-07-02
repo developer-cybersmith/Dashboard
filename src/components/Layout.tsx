@@ -6,6 +6,7 @@ import { useData } from '../context/DataContext';
 
 export function Layout() {
   const [search, setSearch] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { loading } = useData();
 
   return (
@@ -17,9 +18,22 @@ export function Layout() {
         <div className="grid-overlay" />
       </div>
 
-      <Sidebar />
+      {sidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden
+        />
+      )}
+
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
       <div className="main-area">
-        <Header search={search} onSearchChange={setSearch} />
+        <Header
+          search={search}
+          onSearchChange={setSearch}
+          onMenuToggle={() => setSidebarOpen((v) => !v)}
+        />
         <main className="page-content">
           {loading ? (
             <div className="loading-screen">
