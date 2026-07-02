@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -37,69 +35,28 @@ export function DashboardPage() {
       return;
     }
     setSelectedProjectId((current) => {
-      if (current && data.projects.some((project) => project.id === current)) {
-        return current;
-      }
+      if (current && data.projects.some((p) => p.id === current)) return current;
       return data.projects[0].id;
     });
   }, [data.projects]);
 
   const selectedProject = useMemo(
-    () => data.projects.find((project) => project.id === selectedProjectId) ?? null,
+    () => data.projects.find((p) => p.id === selectedProjectId) ?? null,
     [data.projects, selectedProjectId],
   );
 
   const projectProgressBreakdown = useMemo(
-    () =>
-      selectedProject
-        ? getProjectProgressBreakdown(selectedProject.completedPercent)
-        : [],
+    () => selectedProject ? getProjectProgressBreakdown(selectedProject.completedPercent) : [],
     [selectedProject],
   );
 
   const statCards = [
-    {
-      title: 'Total Revenue',
-      value: formatCurrency(metrics.totalRevenue),
-      change: 'From project income',
-      icon: IndianRupee,
-      color: '#3b82f6',
-    },
-    {
-      title: 'Total Projects',
-      value: String(metrics.totalProjects),
-      change: 'Across all companies',
-      icon: FolderKanban,
-      color: '#a855f7',
-    },
-    {
-      title: 'Total Employees',
-      value: String(metrics.totalEmployees),
-      change: 'Active payroll',
-      icon: Users,
-      color: '#22c55e',
-    },
-    {
-      title: 'Total Salary Cost',
-      value: formatCurrency(metrics.totalSalaryCost),
-      change: 'Monthly payroll',
-      icon: Wallet,
-      color: '#f97316',
-    },
-    {
-      title: 'Gross Profit',
-      value: formatCurrency(metrics.grossProfit),
-      change: metrics.grossProfit >= 0 ? 'Positive margin' : 'Deficit',
-      icon: TrendingUp,
-      color: '#14b8a6',
-    },
-    {
-      title: 'Profit Margin',
-      value: formatPercent(metrics.profitMargin),
-      change: 'Revenue vs salary',
-      icon: Percent,
-      color: '#ec4899',
-    },
+    { title: 'Total Revenue',     value: formatCurrency(metrics.totalRevenue),   change: 'From project income',                                    icon: IndianRupee, color: '#3b82f6' },
+    { title: 'Total Projects',    value: String(metrics.totalProjects),           change: 'Across all companies',                                   icon: FolderKanban,color: '#a855f7' },
+    { title: 'Total Employees',   value: String(metrics.totalEmployees),          change: 'Active payroll',                                         icon: Users,       color: '#22c55e' },
+    { title: 'Total Salary Cost', value: formatCurrency(metrics.totalSalaryCost), change: 'Monthly payroll',                                        icon: Wallet,      color: '#f97316' },
+    { title: 'Gross Profit',      value: formatCurrency(metrics.grossProfit),     change: metrics.grossProfit >= 0 ? 'Positive margin' : 'Deficit', icon: TrendingUp,  color: '#14b8a6' },
+    { title: 'Profit Margin',     value: formatPercent(metrics.profitMargin),     change: 'Revenue vs salary',                                      icon: Percent,     color: '#ec4899' },
   ];
 
   return (
@@ -117,60 +74,32 @@ export function DashboardPage() {
         ))}
       </div>
 
-      <div className="chart-grid-3">
-        <div className="panel chart-panel wide-2">
-          <div className="panel-header">
-            <h3>Revenue vs Salary Cost</h3>
-            <span className="panel-tag">This Year</span>
-          </div>
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={metrics.monthlyTrend}>
-              <defs>
-                <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="salGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#a855f7" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
-              <Tooltip
-                contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
-                formatter={(value: number) => formatCurrency(value)}
-              />
-              <Legend />
-              <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#3b82f6" fill="url(#revGrad)" />
-              <Area type="monotone" dataKey="salary" name="Salary Cost" stroke="#a855f7" fill="url(#salGrad)" />
-            </AreaChart>
-          </ResponsiveContainer>
+      {/* ── Project Status (full-width) ── */}
+      <div className="panel chart-panel project-status-panel">
+        <div className="panel-header">
+          <h3>Project Status</h3>
+          <select
+            className="project-select"
+            value={selectedProjectId ?? ''}
+            onChange={(e) => setSelectedProjectId(Number(e.target.value))}
+            disabled={data.projects.length === 0}
+          >
+            {data.projects.length === 0 ? (
+              <option value="">No projects</option>
+            ) : (
+              data.projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.company} — {p.projectName}
+                </option>
+              ))
+            )}
+          </select>
         </div>
 
-        <div className="panel chart-panel">
-          <div className="panel-header">
-            <h3>Project Status</h3>
-            <select
-              className="project-select"
-              value={selectedProjectId ?? ''}
-              onChange={(e) => setSelectedProjectId(Number(e.target.value))}
-              disabled={data.projects.length === 0}
-            >
-              {data.projects.length === 0 ? (
-                <option value="">No projects</option>
-              ) : (
-                data.projects.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.company} — {project.projectName}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
-          {selectedProject ? (
-            <>
+        {selectedProject ? (
+          <div className="project-status-body">
+            {/* Left: wagon wheel + completed/pending text */}
+            <div className="project-status-left">
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
@@ -179,8 +108,8 @@ export function DashboardPage() {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={78}
+                    innerRadius={52}
+                    outerRadius={82}
                     paddingAngle={2}
                   >
                     {projectProgressBreakdown.map((entry) => (
@@ -188,37 +117,62 @@ export function DashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{
-                      background: '#1e293b',
-                      border: '1px solid #334155',
-                      borderRadius: 8,
-                    }}
-                    formatter={(value: number) => `${value}%`}
+                    contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+                    formatter={(v: number) => `${v}%`}
                   />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
+
               <div className="project-work-details">
                 <div className="work-detail-row completed-detail">
                   <span className="work-detail-label">✓ Completed ({selectedProject.completedPercent}%)</span>
-                  <p className="work-detail-text">
-                    {selectedProject.completedWork || 'No details entered'}
-                  </p>
+                  <p className="work-detail-text">{selectedProject.completedWork || 'No details entered'}</p>
                 </div>
                 <div className="work-detail-row pending-detail">
                   <span className="work-detail-label">⏳ Pending ({100 - selectedProject.completedPercent}%)</span>
-                  <p className="work-detail-text">
-                    {selectedProject.pendingWork || 'No details entered'}
-                  </p>
+                  <p className="work-detail-text">{selectedProject.pendingWork || 'No details entered'}</p>
                 </div>
               </div>
-            </>
-          ) : (
-            <p className="panel-footer-text">Add a project to view completion status</p>
-          )}
-        </div>
+            </div>
+
+            {/* Right: manpower list */}
+            <div className="manpower-box">
+              <div className="manpower-box-header">
+                <Users size={15} />
+                <span>Manpower — {selectedProject.projectName}</span>
+              </div>
+
+              {selectedProject.testers.length === 0 ? (
+                <p className="manpower-empty">No testers assigned to this project.</p>
+              ) : (
+                <ul className="manpower-list">
+                  {selectedProject.testers.map((t, i) => (
+                    <li key={i} className="manpower-item">
+                      <div className="manpower-avatar">
+                        {t.name ? t.name[0].toUpperCase() : '?'}
+                      </div>
+                      <div className="manpower-info">
+                        <strong>{t.name || 'Unnamed'}</strong>
+                        <span>{formatCurrency(t.monthlyPay)}/mo</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div className="manpower-footer">
+                <span>Total testers</span>
+                <strong>{selectedProject.testers.length}</strong>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="panel-footer-text">Add a project to view completion status</p>
+        )}
       </div>
 
+      {/* ── Charts row ── */}
       <div className="chart-grid-3">
         <div className="panel chart-panel">
           <div className="panel-header">
@@ -281,6 +235,7 @@ export function DashboardPage() {
         </div>
       </div>
 
+      {/* ── Bottom grid ── */}
       <div className="bottom-grid">
         <div className="panel table-panel wide-2">
           <div className="panel-header">

@@ -5,7 +5,6 @@ import { Header } from './Header';
 import { useData } from '../context/DataContext';
 
 export function Layout() {
-  const [search, setSearch] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { loading } = useData();
 
@@ -29,11 +28,7 @@ export function Layout() {
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="main-area">
-        <Header
-          search={search}
-          onSearchChange={setSearch}
-          onMenuToggle={() => setSidebarOpen((v) => !v)}
-        />
+        <Header onMenuToggle={() => setSidebarOpen((v) => !v)} />
         <main className="page-content">
           {loading ? (
             <div className="loading-screen">
@@ -41,7 +36,7 @@ export function Layout() {
               <p>Connecting to backend & loading data…</p>
             </div>
           ) : (
-            <Outlet context={{ search }} />
+            <Outlet />
           )}
         </main>
       </div>

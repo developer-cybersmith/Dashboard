@@ -1,11 +1,9 @@
-import { Search, Bell, RefreshCw, Wifi, WifiOff, LogOut, Menu } from 'lucide-react';
+import { Bell, RefreshCw, Wifi, WifiOff, LogOut, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 
 interface HeaderProps {
-  search: string;
-  onSearchChange: (value: string) => void;
   onMenuToggle: () => void;
 }
 
@@ -18,7 +16,7 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-export function Header({ search, onSearchChange, onMenuToggle }: HeaderProps) {
+export function Header({ onMenuToggle }: HeaderProps) {
   const { connection, refresh } = useData();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -39,15 +37,8 @@ export function Header({ search, onSearchChange, onMenuToggle }: HeaderProps) {
         <Menu size={20} />
       </button>
 
-      <div className="search-box">
-        <Search size={18} />
-        <input
-          type="text"
-          placeholder="Search projects, employees…"
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-        <kbd className="search-kbd">⌘ K</kbd>
+      <div className="header-title">
+        <span>CyberSmithSecure Dashboard</span>
       </div>
 
       <div className="header-actions">
