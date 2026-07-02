@@ -38,9 +38,9 @@ export function LoginPage() {
 
       <div className="login-card">
         <div className="login-brand">
-          <div className="brand-icon">M</div>
+          <div className="brand-icon">CSS</div>
           <div>
-            <h1>Mitkat</h1>
+            <h1>CyberSmithSecure</h1>
             <p>Secure Dashboard Access</p>
           </div>
         </div>

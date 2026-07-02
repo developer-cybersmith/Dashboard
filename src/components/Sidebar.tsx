@@ -33,10 +33,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   return (
     <aside className={`sidebar${open ? ' sidebar-open' : ''}`}>
       <div className="sidebar-brand">
-        <div className="brand-icon">M</div>
+        <div className="brand-icon">CSS</div>
         <div>
-          <h1>Mitkat</h1>
-          <p>Track · Analyze · Grow</p>
+          <h1>CyberSmith</h1>
+          <p>Secure · Analyze · Grow</p>
         </div>
         <button
           type="button"

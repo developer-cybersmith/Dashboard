@@ -43,7 +43,7 @@ function writeDb(data) {
 }
 
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'mitkat-dashboard-api', time: new Date().toISOString() });
+  res.json({ status: 'ok', service: 'cybersmithsecure-dashboard-api', time: new Date().toISOString() });
 });
 
 app.post('/api/auth/login', (req, res) => {
@@ -122,6 +122,6 @@ if (IS_PRODUCTION && fs.existsSync(DIST_PATH)) {
 app.listen(PORT, () => {
   ensureDb();
   console.log(
-    `Mitkat Dashboard ${IS_PRODUCTION ? 'production' : 'API'} running on http://localhost:${PORT}`,
+    `CyberSmithSecure Dashboard ${IS_PRODUCTION ? 'production' : 'API'} running on http://localhost:${PORT}`,
   );
 });

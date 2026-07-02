@@ -164,27 +164,30 @@ a {
 }
 
 .brand-icon {
-  width: 44px;
+  width: 56px;
   height: 44px;
   border-radius: 13px;
   background: linear-gradient(135deg, var(--blue), var(--purple));
   display: grid;
   place-items: center;
   font-weight: 800;
-  font-size: 20px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
   font-family: 'Orbitron', sans-serif;
   box-shadow: 0 0 22px rgba(120, 90, 255, 0.5), inset 0 0 12px rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
 }
 
 .sidebar-brand h1 {
-  font-size: 19px;
+  font-size: 15px;
   font-weight: 700;
   font-family: 'Orbitron', sans-serif;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   background: linear-gradient(90deg, #fff, #a9c4ff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  white-space: nowrap;
 }
 
 .sidebar-brand p {
@@ -1459,8 +1462,9 @@ tfoot td {
 
 .login-brand h1 {
   font-family: 'Orbitron', sans-serif;
-  font-size: 24px;
-  letter-spacing: 0.06em;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .login-brand p {

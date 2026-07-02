@@ -80,7 +80,7 @@ export function Header({ search, onSearchChange, onMenuToggle }: HeaderProps) {
         <div className="user-profile">
           <div className="avatar">{user ? initials(user.name) : 'MA'}</div>
           <div className="user-info">
-            <strong>{user?.name ?? 'Mitkat Admin'}</strong>
+            <strong>{user?.name ?? 'CSS Admin'}</strong>
             <span>{user?.role ?? 'Administrator'}</span>
           </div>
         </div>
