@@ -17,7 +17,7 @@ import path    from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { connectDB, isMongoActive } from './config/db.js';
-import { seedIfEmpty }              from './utils/seed.js';
+import { seedIfEmpty, runMigration } from './utils/seed.js';
 import { readJson, writeJson, resetJson } from './utils/jsonStore.js';
 
 import { Employee } from './models/Employee.js';
@@ -82,6 +82,40 @@ app.get('/api/health', (_req, res) => {
     uptime:         process.uptime(),
     timestamp:      new Date().toISOString(),
   });
+});
+
+// ─── Admin: manual migration trigger ─────────────────────────────────────────
+// POST /api/admin/migrate  — call this once from Railway to pull data from the
+// old "dashboard" collection into the new employees / projects / companies.
+
+app.post('/api/admin/migrate', authMiddleware, async (_req, res) => {
+  if (!isMongoActive()) {
+    return res.status(503).json({ error: 'MongoDB not connected' });
+  }
+  try {
+    const result = await runMigration();
+    res.json(result);
+  } catch (err) {
+    console.error('[Admin/migrate]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/admin/status — shows current collection counts
+app.get('/api/admin/status', authMiddleware, async (_req, res) => {
+  if (!isMongoActive()) {
+    return res.status(503).json({ error: 'MongoDB not connected' });
+  }
+  try {
+    const [employees, projects, companies] = await Promise.all([
+      Employee.countDocuments(),
+      Project.countDocuments(),
+      Company.countDocuments(),
+    ]);
+    res.json({ employees, projects, companies });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ─── MVC Routes (Employees, Projects, Companies, Dashboard) ──────────────────
