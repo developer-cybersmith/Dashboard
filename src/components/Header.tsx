@@ -1,4 +1,4 @@
-import { Bell, RefreshCw, Wifi, WifiOff, LogOut, Menu } from 'lucide-react';
+import { RefreshCw, Wifi, WifiOff, LogOut, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
@@ -63,10 +63,6 @@ export function Header({ onMenuToggle }: HeaderProps) {
           onClick={refresh}
         >
           <RefreshCw size={18} />
-        </button>
-        <button type="button" className="icon-btn" aria-label="Notifications">
-          <Bell size={18} />
-          <span className="badge-dot" />
         </button>
         <div className="user-profile">
           <div className="avatar">{user ? initials(user.name) : 'MA'}</div>
