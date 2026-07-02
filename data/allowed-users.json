@@ -1,0 +1,22 @@
+[
+  {
+    "email": "nirmal.pandey@cybersmithsecure.com",
+    "name": "Nirmal Pandey",
+    "role": "Administrator"
+  },
+  {
+    "email": "smith.gonsalves@cybersmithsecure.com",
+    "name": "Smith Gonsalves",
+    "role": "Manager"
+  },
+  {
+    "email": "sarvesh.salgaonkar@cybersmithsecure.com",
+    "name": "Sarvesh Salgaonkar",
+    "role": "Manager"
+  },
+  {
+    "email": "developerteam2@cybersmithsecure.com",
+    "name": "Developer Team",
+    "role": "Developer"
+  }
+]

@@ -1,0 +1,473 @@
+{
+  "employees": [
+    {
+      "id": 1,
+      "name": "Rupali",
+      "designation": "",
+      "monthlyPay": 30000
+    },
+    {
+      "id": 2,
+      "name": "Parimal",
+      "designation": "",
+      "monthlyPay": 30000
+    },
+    {
+      "id": 3,
+      "name": "Dipansu",
+      "designation": "",
+      "monthlyPay": 15000
+    },
+    {
+      "id": 4,
+      "name": "Hassan",
+      "designation": "",
+      "monthlyPay": 10000
+    },
+    {
+      "id": 5,
+      "name": "Himanshu",
+      "designation": "",
+      "monthlyPay": 8500
+    },
+    {
+      "id": 6,
+      "name": "Biswajeet",
+      "designation": "",
+      "monthlyPay": 45000
+    },
+    {
+      "id": 7,
+      "name": "Sumit",
+      "designation": "",
+      "monthlyPay": 45000
+    },
+    {
+      "id": 8,
+      "name": "Shruti",
+      "designation": "",
+      "monthlyPay": 25000
+    },
+    {
+      "id": 9,
+      "name": "Laxman",
+      "designation": "",
+      "monthlyPay": 15000
+    },
+    {
+      "id": 10,
+      "name": "Faizan",
+      "designation": "",
+      "monthlyPay": 8500
+    },
+    {
+      "id": 11,
+      "name": "Siddhi",
+      "designation": "",
+      "monthlyPay": 0
+    },
+    {
+      "id": 12,
+      "name": "aayushman",
+      "designation": "",
+      "monthlyPay": 8500
+    },
+    {
+      "id": 13,
+      "name": "Swarup",
+      "designation": "",
+      "monthlyPay": 15000
+    },
+    {
+      "id": 14,
+      "name": "Sanchit",
+      "designation": "",
+      "monthlyPay": 30000
+    },
+    {
+      "id": 15,
+      "name": "Gulab",
+      "designation": "",
+      "monthlyPay": 35000
+    }
+  ],
+  "projects": [
+    {
+      "id": 1,
+      "company": "CSS",
+      "projectName": "Encora",
+      "category": "Web/cloud",
+      "projectLead": "Rupali",
+      "income": 200000,
+      "startDate": "2026-02-01",
+      "endDate": "2026-06-12",
+      "status": "web Completed, cloud , network, red teaming is pending",
+      "testers": [
+        {
+          "name": "Rupali",
+          "monthlyPay": 30000
+        },
+        {
+          "name": "Parimal",
+          "monthlyPay": 30000
+        },
+        {
+          "name": "Dipansu",
+          "monthlyPay": 15000
+        },
+        {
+          "name": "Hassan",
+          "monthlyPay": 10000
+        },
+        {
+          "name": "Himanshu",
+          "monthlyPay": 8500
+        }
+      ],
+      "key": "CSS|Encora",
+      "completedPercent": 0
+    },
+    {
+      "id": 2,
+      "company": "Mitkat",
+      "projectName": "RXIL",
+      "category": "Fintech, ITFS",
+      "projectLead": "Biswajeet",
+      "income": 0,
+      "startDate": "",
+      "endDate": "",
+      "status": "Pending",
+      "testers": [
+        {
+          "name": "Biswajeet",
+          "monthlyPay": 45000
+        },
+        {
+          "name": "Shruti",
+          "monthlyPay": 25000
+        },
+        {
+          "name": "Laxman",
+          "monthlyPay": 15000
+        },
+        {
+          "name": "Faizan",
+          "monthlyPay": 8500
+        },
+        {
+          "name": "Siddhi",
+          "monthlyPay": 0
+        }
+      ],
+      "key": "Mitkat|RXIL",
+      "completedPercent": 0
+    },
+    {
+      "id": 3,
+      "company": "Mitkat",
+      "projectName": "Lumina",
+      "category": "Fintech, ITFS",
+      "projectLead": "Biswajeet",
+      "income": 0,
+      "startDate": "2025-10-01",
+      "endDate": "",
+      "status": "Pending",
+      "testers": [
+        {
+          "name": "Biswajeet",
+          "monthlyPay": 45000
+        },
+        {
+          "name": "Sanchit",
+          "monthlyPay": 30000
+        },
+        {
+          "name": "Parimal",
+          "monthlyPay": 30000
+        }
+      ],
+      "key": "Mitkat|Lumina",
+      "completedPercent": 0
+    },
+    {
+      "id": 4,
+      "company": "Mitkat",
+      "projectName": "LVP",
+      "category": "Fintech, ITFS",
+      "projectLead": "Biswajeet",
+      "income": 0,
+      "startDate": "2026-06-01",
+      "endDate": "",
+      "status": "Pending",
+      "testers": [
+        {
+          "name": "Biswajeet",
+          "monthlyPay": 45000
+        },
+        {
+          "name": "Parimal",
+          "monthlyPay": 30000
+        }
+      ],
+      "key": "Mitkat|LVP",
+      "completedPercent": 0
+    },
+    {
+      "id": 5,
+      "company": "CSS",
+      "projectName": "Advantage go",
+      "category": "Fintech, ITFS",
+      "projectLead": "Rupali",
+      "income": 0,
+      "startDate": "2026-05-07",
+      "endDate": "2026-06-02",
+      "status": "revalidation on hold by sarvesh sir",
+      "testers": [
+        {
+          "name": "Rupali",
+          "monthlyPay": 30000
+        }
+      ],
+      "key": "CSS|Advantage go",
+      "completedPercent": 0
+    },
+    {
+      "id": 6,
+      "company": "CSS",
+      "projectName": "UNO Ai",
+      "category": "Fintech, ITFS",
+      "projectLead": "Rupali",
+      "income": 0,
+      "startDate": "2026-05-07",
+      "endDate": "2026-05-28",
+      "status": "Revalidation",
+      "testers": [
+        {
+          "name": "Rupali",
+          "monthlyPay": 30000
+        },
+        {
+          "name": "Dipansu",
+          "monthlyPay": 15000
+        },
+        {
+          "name": "Hassan",
+          "monthlyPay": 10000
+        },
+        {
+          "name": "Gulab",
+          "monthlyPay": 35000
+        }
+      ],
+      "key": "CSS|UNO Ai",
+      "completedPercent": 0
+    },
+    {
+      "id": 7,
+      "company": "CSS",
+      "projectName": "Decklar",
+      "category": "honeycomb, radar, hive,API",
+      "projectLead": "Parimal",
+      "income": 0,
+      "startDate": "2026-05-18",
+      "endDate": "",
+      "status": "revalidation",
+      "testers": [
+        {
+          "name": "Parimal",
+          "monthlyPay": 30000
+        },
+        {
+          "name": "Laxman",
+          "monthlyPay": 15000
+        },
+        {
+          "name": "Gulab",
+          "monthlyPay": 35000
+        },
+        {
+          "name": "Himanshu",
+          "monthlyPay": 8500
+        }
+      ],
+      "key": "CSS|Decklar",
+      "completedPercent": 0
+    },
+    {
+      "id": 8,
+      "company": "Mitkat",
+      "projectName": "Mehery",
+      "category": "honeycomb, radar, hive,API",
+      "projectLead": "Biswajeet",
+      "income": 0,
+      "startDate": "2026-06-01",
+      "endDate": "",
+      "status": "Blackbox testing",
+      "testers": [
+        {
+          "name": "Biswajeet",
+          "monthlyPay": 45000
+        },
+        {
+          "name": "Gulab",
+          "monthlyPay": 35000
+        },
+        {
+          "name": "Shruti",
+          "monthlyPay": 25000
+        },
+        {
+          "name": "Laxman",
+          "monthlyPay": 15000
+        }
+      ],
+      "key": "Mitkat|Mehery",
+      "completedPercent": 0
+    },
+    {
+      "id": 9,
+      "company": "CSS",
+      "projectName": "Annadarpan phase 2",
+      "category": "honeycomb, radar, hive,API",
+      "projectLead": "Rupali",
+      "income": 0,
+      "startDate": "2026-01-01",
+      "endDate": "",
+      "status": "revalidation (application, cloud)",
+      "testers": [
+        {
+          "name": "Rupali",
+          "monthlyPay": 30000
+        }
+      ],
+      "key": "CSS|Annadarpan phase 2",
+      "completedPercent": 0
+    },
+    {
+      "id": 10,
+      "company": "CSS",
+      "projectName": "Arjas Steel",
+      "category": "honeycomb, radar, hive,API",
+      "projectLead": "Sumit",
+      "income": 0,
+      "startDate": "2025-03-01",
+      "endDate": "",
+      "status": "Policy making",
+      "testers": [
+        {
+          "name": "Sumit",
+          "monthlyPay": 45000
+        },
+        {
+          "name": "Aayushman",
+          "monthlyPay": 8500
+        }
+      ],
+      "key": "CSS|Arjas Steel",
+      "completedPercent": 0
+    },
+    {
+      "id": 11,
+      "company": "CSS",
+      "projectName": "ASG",
+      "category": "honeycomb, radar, hive,API",
+      "projectLead": "Sumit",
+      "income": 0,
+      "startDate": "2025-04-02",
+      "endDate": "",
+      "status": "contract renewal",
+      "testers": [
+        {
+          "name": "Sumit",
+          "monthlyPay": 45000
+        },
+        {
+          "name": "Swarup",
+          "monthlyPay": 15000
+        }
+      ],
+      "key": "CSS|ASG",
+      "completedPercent": 0
+    },
+    {
+      "id": 12,
+      "company": "Mitkat",
+      "projectName": "Jio Blackrock",
+      "category": "honeycomb, radar, hive,API",
+      "projectLead": "Parimal",
+      "income": 0,
+      "startDate": "",
+      "endDate": "",
+      "status": "Pending",
+      "testers": [
+        {
+          "name": "Parimal",
+          "monthlyPay": 30000
+        }
+      ],
+      "key": "Mitkat|Jio Blackrock",
+      "completedPercent": 0
+    },
+    {
+      "id": 13,
+      "company": "Mitkat",
+      "projectName": "Paraviste",
+      "category": "honeycomb, radar, hive,API",
+      "projectLead": "Parimal",
+      "income": 0,
+      "startDate": "",
+      "endDate": "",
+      "status": "Pending",
+      "testers": [
+        {
+          "name": "Parimal",
+          "monthlyPay": 30000
+        }
+      ],
+      "key": "Mitkat|Paraviste",
+      "completedPercent": 0
+    },
+    {
+      "id": 14,
+      "company": "CSS",
+      "projectName": "Arjas SAP VAPT",
+      "category": "honeycomb, radar, hive,API",
+      "projectLead": "Sanchit",
+      "income": 0,
+      "startDate": "",
+      "endDate": "",
+      "status": "Pending",
+      "testers": [
+        {
+          "name": "Sanchit",
+          "monthlyPay": 30000
+        },
+        {
+          "name": "Sumit",
+          "monthlyPay": 45000
+        }
+      ],
+      "key": "CSS|Arjas SAP VAPT",
+      "completedPercent": 0
+    },
+    {
+      "id": 15,
+      "company": "Mitkat",
+      "projectName": "Venture",
+      "category": "honeycomb, radar, hive,API",
+      "projectLead": "Parimal",
+      "income": 0,
+      "startDate": "",
+      "endDate": "",
+      "status": "Revalidation",
+      "testers": [
+        {
+          "name": "Parimal",
+          "monthlyPay": 30000
+        }
+      ],
+      "key": "Mitkat|Venture",
+      "completedPercent": 0
+    }
+  ]
+}
