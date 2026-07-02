@@ -104,17 +104,20 @@ app.use('/api/dashboard', mongoOnly, dashboardRoutes);
 // The existing React frontend reads/writes everything via these two endpoints.
 // We keep them intact, routing through MongoDB when active.
 
+const EXCLUDE = { _id: 0, __v: 0, createdAt: 0, updatedAt: 0 };
+
 app.get('/api/data', authMiddleware, async (_req, res) => {
   try {
     if (isMongoActive()) {
       const [employees, projects] = await Promise.all([
-        Employee.find({}, { _id: 0 }).sort({ id: 1 }).lean(),
-        Project.find({},  { _id: 0 }).sort({ id: 1 }).lean(),
+        Employee.find({}, EXCLUDE).sort({ id: 1 }).lean(),
+        Project.find({},  EXCLUDE).sort({ id: 1 }).lean(),
       ]);
       return res.json({ employees, projects });
     }
     res.json(readJson());
   } catch (err) {
+    console.error('[GET /api/data]', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -167,13 +170,12 @@ app.put('/api/data', authMiddleware, async (req, res) => {
 app.post('/api/reset', authMiddleware, async (_req, res) => {
   try {
     if (isMongoActive()) {
-      // Re-seed: wipe + re-insert from initial-data.json
       await Promise.all([Employee.deleteMany({}), Project.deleteMany({}), Company.deleteMany({})]);
       await seedIfEmpty();
 
       const [employees, projects] = await Promise.all([
-        Employee.find({}, { _id: 0 }).sort({ id: 1 }).lean(),
-        Project.find({},  { _id: 0 }).sort({ id: 1 }).lean(),
+        Employee.find({}, EXCLUDE).sort({ id: 1 }).lean(),
+        Project.find({},  EXCLUDE).sort({ id: 1 }).lean(),
       ]);
       return res.json({ employees, projects });
     }
@@ -181,6 +183,7 @@ app.post('/api/reset', authMiddleware, async (_req, res) => {
     const data = resetJson();
     res.json(data);
   } catch (err) {
+    console.error('[POST /api/reset]', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -199,7 +202,11 @@ async function start() {
   await connectDB();
 
   if (isMongoActive()) {
-    await seedIfEmpty();
+    try {
+      await seedIfEmpty();
+    } catch (err) {
+      console.error('[Server] Seed failed (non-fatal):', err.message);
+    }
   }
 
   app.listen(PORT, () => {

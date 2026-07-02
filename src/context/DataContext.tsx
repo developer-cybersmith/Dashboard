@@ -39,10 +39,13 @@ const DataContext = createContext<DataContextValue | null>(null);
 
 const EMPTY: AppData = { employees: [], projects: [] };
 
-function normalizeData(data: AppData): AppData {
+function normalizeData(data: unknown): AppData {
+  const raw = (data ?? {}) as Record<string, unknown>;
+  const employees = Array.isArray(raw.employees) ? (raw.employees as Employee[]) : [];
+  const projects  = Array.isArray(raw.projects)  ? (raw.projects  as Project[])  : [];
   return {
-    employees: data.employees,
-    projects: data.projects.map(normalizeProject),
+    employees,
+    projects: projects.map(normalizeProject),
   };
 }
 
@@ -71,10 +74,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data: fetched, online } = await fetchData();
-    setData(normalizeData(fetched));
-    setConnection(online ? 'online' : 'offline');
-    setLoading(false);
+    try {
+      const { data: fetched, online } = await fetchData();
+      setData(normalizeData(fetched));
+      setConnection(online ? 'online' : 'offline');
+    } catch (err) {
+      console.error('[DataContext] load failed:', err);
+      setConnection('offline');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
