@@ -1,15 +1,30 @@
-import type { Project } from '../types';
+import type { Project, ProjectTester } from '../types';
 
 export function clampPercent(value: number): number {
   return Math.min(100, Math.max(0, Math.round(value)));
 }
 
-export function normalizeProject(project: Project): Project {
+/** Ensures every project has all required fields with safe defaults. */
+export function normalizeProject(project: unknown): Project {
+  const p = (project ?? {}) as Record<string, unknown>;
   return {
-    ...project,
-    completedWork: project.completedWork ?? '',
-    pendingWork: project.pendingWork ?? '',
-    completedPercent: clampPercent(Number(project.completedPercent) || 0),
+    id:               Number(p.id)              || 0,
+    company:          String(p.company          ?? ''),
+    projectName:      String(p.projectName      ?? ''),
+    category:         String(p.category         ?? ''),
+    projectLead:      String(p.projectLead      ?? ''),
+    income:           Number(p.income)          || 0,
+    startDate:        String(p.startDate        ?? ''),
+    endDate:          String(p.endDate          ?? ''),
+    completedWork:    String(p.completedWork    ?? ''),
+    pendingWork:      String(p.pendingWork      ?? ''),
+    completedPercent: clampPercent(Number(p.completedPercent) || 0),
+    testers:          Array.isArray(p.testers)
+                        ? (p.testers as ProjectTester[]).map((t) => ({
+                            name:       String(t?.name       ?? ''),
+                            monthlyPay: Number(t?.monthlyPay) || 0,
+                          }))
+                        : [],
   };
 }
 

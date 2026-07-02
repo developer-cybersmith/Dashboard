@@ -39,13 +39,23 @@ const DataContext = createContext<DataContextValue | null>(null);
 
 const EMPTY: AppData = { employees: [], projects: [] };
 
+function normalizeEmployee(e: unknown): Employee {
+  const emp = (e ?? {}) as Record<string, unknown>;
+  return {
+    id:          Number(emp.id)          || 0,
+    name:        String(emp.name         ?? ''),
+    designation: String(emp.designation  ?? ''),
+    monthlyPay:  Number(emp.monthlyPay)  || 0,
+  };
+}
+
 function normalizeData(data: unknown): AppData {
   const raw = (data ?? {}) as Record<string, unknown>;
-  const employees = Array.isArray(raw.employees) ? (raw.employees as Employee[]) : [];
-  const projects  = Array.isArray(raw.projects)  ? (raw.projects  as Project[])  : [];
+  const employees = Array.isArray(raw.employees) ? raw.employees : [];
+  const projects  = Array.isArray(raw.projects)  ? raw.projects  : [];
   return {
-    employees,
-    projects: projects.map(normalizeProject),
+    employees: employees.map(normalizeEmployee),
+    projects:  projects.map(normalizeProject),
   };
 }
 

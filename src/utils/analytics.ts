@@ -94,5 +94,5 @@ function buildMonthlyTrend(
 }
 
 export function projectTesterCost(project: Project): number {
-  return project.testers.reduce((sum, t) => sum + (t.monthlyPay || 0), 0);
+  return (project.testers ?? []).reduce((sum, t) => sum + (t?.monthlyPay || 0), 0);
 }
