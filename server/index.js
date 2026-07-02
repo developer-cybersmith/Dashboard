@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { authenticate, authMiddleware, getSession, revokeToken } from './auth.js';
-import { connectMongo, readData, writeData, resetToSeed, MONGO_ENABLED } from './db.js';
+import { connectMongo, readData, writeData, resetToSeed, MONGO_ENABLED, isMongoActive } from './db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR  = path.join(__dirname, '..');
@@ -29,7 +29,8 @@ app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     service: 'cybersmithsecure-dashboard-api',
-    storage: MONGO_ENABLED ? 'mongodb' : 'json-file',
+    storage: isMongoActive() ? 'mongodb' : 'json-file',
+    mongoConfigured: MONGO_ENABLED,
     time: new Date().toISOString(),
   });
 });
@@ -117,16 +118,11 @@ if (IS_PRODUCTION && fs.existsSync(DIST_PATH)) {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 
-connectMongo()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(
-        `CyberSmithSecure Dashboard ${IS_PRODUCTION ? 'production' : 'dev'} running on http://localhost:${PORT}`,
-        `| storage: ${MONGO_ENABLED ? 'MongoDB' : 'JSON file'}`,
-      );
-    });
-  })
-  .catch((err) => {
-    console.error('Failed to connect to MongoDB:', err.message);
-    process.exit(1);
+connectMongo().finally(() => {
+  app.listen(PORT, () => {
+    console.log(
+      `CyberSmithSecure Dashboard ${IS_PRODUCTION ? 'production' : 'dev'} running on http://localhost:${PORT}`,
+      `| storage: ${isMongoActive() ? 'MongoDB' : 'JSON file'}`,
+    );
   });
+});

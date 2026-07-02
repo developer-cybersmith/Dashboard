@@ -36,6 +36,12 @@ if (MONGO_ENABLED) {
 
 // ── Connect to MongoDB and seed if the collection is empty ────────────────────
 
+let mongoActive = false;
+
+export function isMongoActive() {
+  return mongoActive;
+}
+
 export async function connectMongo() {
   if (!MONGO_ENABLED) {
     ensureJsonDb();
@@ -43,24 +49,32 @@ export async function connectMongo() {
     return;
   }
 
-  await mongoose.connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 10000,
-  });
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 10000,
+    });
 
-  console.log('MongoDB connected');
+    mongoActive = true;
+    console.log('MongoDB connected');
 
-  const count = await DataModel.countDocuments();
-  if (count === 0) {
-    const seed = readSeed();
-    await DataModel.create(seed);
-    console.log('MongoDB seeded with initial data');
+    const count = await DataModel.countDocuments();
+    if (count === 0) {
+      const seed = readSeed();
+      await DataModel.create(seed);
+      console.log('MongoDB seeded with initial data');
+    }
+  } catch (err) {
+    mongoActive = false;
+    console.error('MongoDB connection failed:', err.message);
+    console.warn('Falling back to local JSON storage (data/db.json)');
+    ensureJsonDb();
   }
 }
 
 // ── Read all data ─────────────────────────────────────────────────────────────
 
 export async function readData() {
-  if (MONGO_ENABLED) {
+  if (mongoActive) {
     const doc = await DataModel.findOne({}).lean();
     if (!doc) return readSeed();
     return { employees: doc.employees ?? [], projects: doc.projects ?? [] };
@@ -73,7 +87,7 @@ export async function readData() {
 // ── Write all data ────────────────────────────────────────────────────────────
 
 export async function writeData(data) {
-  if (MONGO_ENABLED) {
+  if (mongoActive) {
     await DataModel.findOneAndUpdate(
       {},
       { $set: { employees: data.employees, projects: data.projects } },
