@@ -1,66 +1,67 @@
+/**
+ * CyberSmithSecure Dashboard — Express API Server (MVC Refactor)
+ *
+ * Endpoints:
+ *   Auth          POST /api/auth/login   GET /api/auth/me   POST /api/auth/logout
+ *   Health        GET  /api/health
+ *   Data compat   GET  /api/data         PUT /api/data       POST /api/reset
+ *   Employees     /api/employees  (CRUD)
+ *   Projects      /api/projects   (CRUD)
+ *   Companies     /api/companies  (CRUD)
+ *   Dashboard     GET /api/dashboard  (aggregate stats)
+ */
+
 import express from 'express';
-import cors from 'cors';
-import fs from 'node:fs';
-import path from 'node:path';
+import cors    from 'cors';
+import path    from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { authenticate, authMiddleware, getSession, revokeToken } from './auth.js';
-import { connectMongo, readData, writeData, resetToSeed, MONGO_ENABLED, isMongoActive } from './db.js';
+
+import { connectDB, isMongoActive } from './config/db.js';
+import { seedIfEmpty }              from './utils/seed.js';
+import { readJson, writeJson, resetJson } from './utils/jsonStore.js';
+
+import { Employee } from './models/Employee.js';
+import { Project }  from './models/Project.js';
+import { Company }  from './models/Company.js';
+
+import employeeRoutes  from './routes/employees.js';
+import projectRoutes   from './routes/projects.js';
+import companyRoutes   from './routes/companies.js';
+import dashboardRoutes from './routes/dashboard.js';
+
+import {
+  authenticate,
+  getSession,
+  revokeToken,
+  authMiddleware,
+} from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT_DIR  = path.join(__dirname, '..');
-const SEED_PATH = path.join(ROOT_DIR, 'data', 'initial-data.json');
-const DIST_PATH = path.join(ROOT_DIR, 'dist');
-
 const PORT = process.env.PORT || 4000;
-const IS_PRODUCTION =
-  process.env.NODE_ENV === 'production' || fs.existsSync(DIST_PATH);
 
 const app = express();
 
-if (!IS_PRODUCTION) {
-  app.use(cors());
-}
-
+app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// ── Health ────────────────────────────────────────────────────────────────────
-
-app.get('/api/health', (_req, res) => {
-  res.json({
-    status: 'ok',
-    service: 'cybersmithsecure-dashboard-api',
-    storage: isMongoActive() ? 'mongodb' : 'json-file',
-    mongoConfigured: MONGO_ENABLED,
-    time: new Date().toISOString(),
-  });
-});
-
-// ── Auth ──────────────────────────────────────────────────────────────────────
+// ─── Auth ────────────────────────────────────────────────────────────────────
 
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body ?? {};
   if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required' });
+    return res.status(400).json({ error: 'email and password are required' });
   }
-
   const result = authenticate(email, password);
-  if (!result) {
-    return res.status(401).json({ error: 'Invalid email or password' });
-  }
-
+  if (!result) return res.status(401).json({ error: 'Invalid credentials' });
   res.json(result);
 });
 
 app.get('/api/auth/me', (req, res) => {
-  const header = req.headers.authorization;
-  const token  = header?.startsWith('Bearer ') ? header.slice(7) : null;
-  const user   = getSession(token);
-
-  if (!user) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-
-  res.json({ user });
+  const header  = req.headers.authorization;
+  const token   = header?.startsWith('Bearer ') ? header.slice(7) : null;
+  const session = getSession(token);
+  if (!session) return res.status(401).json({ error: 'Not authenticated' });
+  res.json({ user: session });
 });
 
 app.post('/api/auth/logout', (req, res) => {
@@ -70,59 +71,146 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Data CRUD ─────────────────────────────────────────────────────────────────
+// ─── Health ──────────────────────────────────────────────────────────────────
+
+app.get('/api/health', (_req, res) => {
+  res.json({
+    service:        'cybersmithsecure-dashboard-api',
+    status:         'ok',
+    storage:        isMongoActive() ? 'mongodb' : 'json-file',
+    mongoConfigured: Boolean(process.env.MONGO_URI),
+    uptime:         process.uptime(),
+    timestamp:      new Date().toISOString(),
+  });
+});
+
+// ─── MVC Routes (Employees, Projects, Companies, Dashboard) ──────────────────
+
+function mongoOnly(req, res, next) {
+  if (!isMongoActive()) {
+    return res.status(503).json({
+      error: 'MongoDB not connected. These endpoints require a live MongoDB connection.',
+    });
+  }
+  next();
+}
+
+app.use('/api/employees', mongoOnly, employeeRoutes);
+app.use('/api/projects',  mongoOnly, projectRoutes);
+app.use('/api/companies', mongoOnly, companyRoutes);
+app.use('/api/dashboard', mongoOnly, dashboardRoutes);
+
+// ─── Legacy /api/data  (frontend compatibility) ───────────────────────────────
+// The existing React frontend reads/writes everything via these two endpoints.
+// We keep them intact, routing through MongoDB when active.
 
 app.get('/api/data', authMiddleware, async (_req, res) => {
   try {
-    res.json(await readData());
+    if (isMongoActive()) {
+      const [employees, projects] = await Promise.all([
+        Employee.find({}, { _id: 0 }).sort({ id: 1 }).lean(),
+        Project.find({},  { _id: 0 }).sort({ id: 1 }).lean(),
+      ]);
+      return res.json({ employees, projects });
+    }
+    res.json(readJson());
   } catch (err) {
-    console.error('GET /api/data error:', err);
-    res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: err.message });
   }
 });
 
 app.put('/api/data', authMiddleware, async (req, res) => {
   try {
-    const body = req.body;
-    if (!body || !Array.isArray(body.employees) || !Array.isArray(body.projects)) {
-      return res.status(400).json({ error: 'Invalid payload: expected { employees[], projects[] }' });
+    const { employees = [], projects = [] } = req.body;
+
+    if (isMongoActive()) {
+      // Sync employees — upsert all, delete removed
+      await Promise.all(
+        employees.map((e) =>
+          Employee.findOneAndUpdate({ id: e.id }, e, { upsert: true, new: true }),
+        ),
+      );
+      if (employees.length > 0) {
+        const keepIds = employees.map((e) => e.id);
+        await Employee.deleteMany({ id: { $nin: keepIds } });
+      }
+
+      // Sync projects — upsert all, delete removed
+      await Promise.all(
+        projects.map((p) =>
+          Project.findOneAndUpdate({ id: p.id }, p, { upsert: true, new: true }),
+        ),
+      );
+      if (projects.length > 0) {
+        const keepIds = projects.map((p) => p.id);
+        await Project.deleteMany({ id: { $nin: keepIds } });
+      }
+
+      // Keep companies in sync
+      const names = [...new Set(projects.map((p) => p.company).filter(Boolean))];
+      await Promise.all(
+        names.map((name) =>
+          Company.findOneAndUpdate({ name }, { name }, { upsert: true, new: true }),
+        ),
+      );
+
+      return res.json({ ok: true, saved: { employees: employees.length, projects: projects.length } });
     }
-    await writeData(body);
-    res.json({ ok: true, saved: { employees: body.employees.length, projects: body.projects.length } });
+
+    writeJson({ employees, projects });
+    res.json({ ok: true, saved: { employees: employees.length, projects: projects.length } });
   } catch (err) {
-    console.error('PUT /api/data error:', err);
-    res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: err.message });
   }
 });
 
 app.post('/api/reset', authMiddleware, async (_req, res) => {
   try {
-    const seed = await resetToSeed();
-    res.json(seed);
+    if (isMongoActive()) {
+      // Re-seed: wipe + re-insert from initial-data.json
+      await Promise.all([Employee.deleteMany({}), Project.deleteMany({}), Company.deleteMany({})]);
+      await seedIfEmpty();
+
+      const [employees, projects] = await Promise.all([
+        Employee.find({}, { _id: 0 }).sort({ id: 1 }).lean(),
+        Project.find({},  { _id: 0 }).sort({ id: 1 }).lean(),
+      ]);
+      return res.json({ employees, projects });
+    }
+
+    const data = resetJson();
+    res.json(data);
   } catch (err) {
-    console.error('POST /api/reset error:', err);
-    res.status(500).json({ error: String(err) });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ── Serve built frontend in production ────────────────────────────────────────
+// ─── Static files (production build) ─────────────────────────────────────────
 
-if (IS_PRODUCTION && fs.existsSync(DIST_PATH)) {
-  app.use(express.static(DIST_PATH));
+const DIST = path.join(__dirname, '..', 'dist');
+app.use(express.static(DIST));
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(DIST, 'index.html'));
+});
 
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
-    res.sendFile(path.join(DIST_PATH, 'index.html'));
+// ─── Bootstrap ───────────────────────────────────────────────────────────────
+
+async function start() {
+  await connectDB();
+
+  if (isMongoActive()) {
+    await seedIfEmpty();
+  }
+
+  app.listen(PORT, () => {
+    const storage = isMongoActive() ? 'MongoDB' : 'JSON file';
+    console.log(
+      `[Server] CyberSmithSecure Dashboard running on port ${PORT} | storage: ${storage}`,
+    );
   });
 }
 
-// ── Start ─────────────────────────────────────────────────────────────────────
-
-connectMongo().finally(() => {
-  app.listen(PORT, () => {
-    console.log(
-      `CyberSmithSecure Dashboard ${IS_PRODUCTION ? 'production' : 'dev'} running on http://localhost:${PORT}`,
-      `| storage: ${isMongoActive() ? 'MongoDB' : 'JSON file'}`,
-    );
-  });
+start().catch((err) => {
+  console.error('[Server] Fatal startup error:', err.message);
+  process.exit(1);
 });
