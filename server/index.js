@@ -11,9 +11,10 @@
  *   Dashboard     GET /api/dashboard  (aggregate stats)
  */
 
-import express from 'express';
-import cors    from 'cors';
-import path    from 'node:path';
+import express  from 'express';
+import cors     from 'cors';
+import path     from 'node:path';
+import mongoose from 'mongoose';
 import { fileURLToPath } from 'node:url';
 
 import { connectDB, isMongoActive } from './config/db.js';
@@ -101,6 +102,24 @@ app.post('/api/admin/migrate', authMiddleware, async (_req, res) => {
   }
 });
 
+// GET /api/admin/debug — shows first 3 raw docs from each collection
+app.get('/api/admin/debug', authMiddleware, async (_req, res) => {
+  if (!isMongoActive()) return res.status(503).json({ error: 'MongoDB not connected' });
+  try {
+    const db = mongoose.connection.db;
+    const collections = await db.listCollections().toArray();
+    const collectionNames = collections.map((c) => c.name);
+
+    const sample = {};
+    for (const name of collectionNames) {
+      sample[name] = await db.collection(name).find({}).limit(3).toArray();
+    }
+    res.json({ database: db.databaseName, collections: collectionNames, sample });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/admin/status — shows current collection counts
 app.get('/api/admin/status', authMiddleware, async (_req, res) => {
   if (!isMongoActive()) {
@@ -135,18 +154,45 @@ app.use('/api/companies', mongoOnly, companyRoutes);
 app.use('/api/dashboard', mongoOnly, dashboardRoutes);
 
 // ─── Legacy /api/data  (frontend compatibility) ───────────────────────────────
-// The existing React frontend reads/writes everything via these two endpoints.
-// We keep them intact, routing through MongoDB when active.
 
-const EXCLUDE = { _id: 0, __v: 0, createdAt: 0, updatedAt: 0 };
+/**
+ * Fetch all docs from a Mongoose model and ensure every doc has a unique
+ * numeric `id`. Documents that only have MongoDB's `_id` get a stable
+ * sequential id assigned and persisted back to the collection.
+ */
+async function fetchAndEnsureIds(Model) {
+  const docs = await Model.find({}).lean();
+  if (docs.length === 0) return [];
+
+  const out = [];
+  let nextId = Math.max(0, ...docs.map((d) => Number(d.id) || 0)) + 1;
+
+  for (const doc of docs) {
+    const { _id, __v, createdAt, updatedAt, ...rest } = doc;
+
+    if (!rest.id || Number(rest.id) === 0) {
+      // Assign and persist a proper numeric id
+      rest.id = nextId++;
+      await Model.findByIdAndUpdate(_id, { $set: { id: rest.id } });
+      console.log(`[Data] Assigned id=${rest.id} to _id=${_id}`);
+    } else {
+      rest.id = Number(rest.id);
+    }
+
+    out.push(rest);
+  }
+
+  return out.sort((a, b) => a.id - b.id);
+}
 
 app.get('/api/data', authMiddleware, async (_req, res) => {
   try {
     if (isMongoActive()) {
       const [employees, projects] = await Promise.all([
-        Employee.find({}, EXCLUDE).sort({ id: 1 }).lean(),
-        Project.find({},  EXCLUDE).sort({ id: 1 }).lean(),
+        fetchAndEnsureIds(Employee),
+        fetchAndEnsureIds(Project),
       ]);
+      console.log(`[GET /api/data] employees:${employees.length} projects:${projects.length}`);
       return res.json({ employees, projects });
     }
     res.json(readJson());
