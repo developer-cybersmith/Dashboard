@@ -156,9 +156,8 @@ app.use('/api/dashboard', mongoOnly, dashboardRoutes);
 // ─── Legacy /api/data  (frontend compatibility) ───────────────────────────────
 
 /**
- * Fetch all docs from a Mongoose model and ensure every doc has a unique
- * numeric `id`. Documents that only have MongoDB's `_id` get a stable
- * sequential id assigned and persisted back to the collection.
+ * Fetch all docs from a Mongoose model, strip internal MongoDB fields,
+ * and ensure every doc has a unique numeric `id`.
  */
 async function fetchAndEnsureIds(Model) {
   const docs = await Model.find({}).lean();
@@ -168,13 +167,11 @@ async function fetchAndEnsureIds(Model) {
   let nextId = Math.max(0, ...docs.map((d) => Number(d.id) || 0)) + 1;
 
   for (const doc of docs) {
-    const { _id, __v, createdAt, updatedAt, ...rest } = doc;
+    const { _id, __v, createdAt, updatedAt, key, ...rest } = doc;
 
     if (!rest.id || Number(rest.id) === 0) {
-      // Assign and persist a proper numeric id
       rest.id = nextId++;
       await Model.findByIdAndUpdate(_id, { $set: { id: rest.id } });
-      console.log(`[Data] Assigned id=${rest.id} to _id=${_id}`);
     } else {
       rest.id = Number(rest.id);
     }

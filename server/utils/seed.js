@@ -1,12 +1,13 @@
 /**
- * seedIfEmpty()  — called on every server startup.
- *   - Only fills collections that are currently EMPTY.
- *   - For empty collections: tries old "dashboard" / "dashboarddata" collection first.
- *   - Falls back to initial-data.json if no old collection exists.
+ * seed.js — startup data initialisation.
  *
- * runMigration() — can also be called manually via POST /api/admin/migrate
- *   - Always reads the old collection and upserts into new collections.
- *   - Safe to run multiple times (upsert, not insert).
+ * Handles three source formats automatically:
+ *   A) Collections already have individual documents  → skip / nothing to do
+ *   B) Collection has ONE document with an embedded array
+ *      e.g. projects collection: { projects:[...], __v:0 }
+ *      → explode into individual documents
+ *   C) Old "dashboard" / "dashboarddata" collection with embedded arrays → migrate
+ *   D) No data anywhere → seed from initial-data.json
  */
 
 import mongoose from 'mongoose';
@@ -17,32 +18,32 @@ import { readSeed } from './jsonStore.js';
 
 // ── field normalisers ─────────────────────────────────────────────────────────
 
-export function cleanEmp(e) {
-  const raw = e ?? {};
+export function cleanEmp(raw) {
+  const e = raw ?? {};
   return {
-    id:          Number(raw.id)          || 0,
-    name:        String(raw.name         ?? ''),
-    designation: String(raw.designation  ?? ''),
-    monthlyPay:  Number(raw.monthlyPay)  || 0,
+    id:          Number(e.id)          || 0,
+    name:        String(e.name         ?? ''),
+    designation: String(e.designation  ?? ''),
+    monthlyPay:  Number(e.monthlyPay)  || 0,
   };
 }
 
-export function cleanProj(p) {
-  const { _id, __v, status, ...raw } = p ?? {};
+export function cleanProj(raw) {
+  const { _id, __v, status, key, ...p } = raw ?? {};
   return {
-    id:               Number(raw.id)               || 0,
-    company:          String(raw.company            ?? ''),
-    projectName:      String(raw.projectName        ?? ''),
-    category:         String(raw.category           ?? ''),
-    projectLead:      String(raw.projectLead        ?? ''),
-    income:           Number(raw.income)            || 0,
-    startDate:        String(raw.startDate          ?? ''),
-    endDate:          String(raw.endDate            ?? ''),
-    completedWork:    String(raw.completedWork      ?? (status ? String(status) : '')),
-    pendingWork:      String(raw.pendingWork        ?? ''),
-    completedPercent: Math.min(100, Math.max(0, Number(raw.completedPercent) || 0)),
-    testers: Array.isArray(raw.testers)
-      ? raw.testers.map((t) => ({
+    id:               Number(p.id)               || 0,
+    company:          String(p.company            ?? ''),
+    projectName:      String(p.projectName        ?? ''),
+    category:         String(p.category           ?? ''),
+    projectLead:      String(p.projectLead        ?? ''),
+    income:           Number(p.income)            || 0,
+    startDate:        String(p.startDate          ?? ''),
+    endDate:          String(p.endDate            ?? ''),
+    completedWork:    String(p.completedWork      ?? (status ? String(status) : '')),
+    pendingWork:      String(p.pendingWork        ?? ''),
+    completedPercent: Math.min(100, Math.max(0, Number(p.completedPercent) || 0)),
+    testers: Array.isArray(p.testers)
+      ? p.testers.map((t) => ({
           name:       String(t?.name       ?? ''),
           monthlyPay: Number(t?.monthlyPay) || 0,
         }))
@@ -58,7 +59,42 @@ async function syncCompanies(projects) {
   return names.length;
 }
 
-// ── read old dashboard collection ────────────────────────────────────────────
+// ── detect & explode single-document format ───────────────────────────────────
+// Handles: projects collection has { projects:[...] }
+//          employees collection has { employees:[...] }
+
+async function explodeSingleDocIfNeeded(Model, embeddedField, cleanFn, label) {
+  const collName = Model.collection.name;
+  const db = mongoose.connection.db;
+
+  // Look for a document that has the embedded array field
+  const wrapper = await db.collection(collName).findOne({
+    [embeddedField]: { $exists: true, $type: 'array' },
+  });
+
+  if (!wrapper) return 0; // Normal individual-document format
+
+  const items = wrapper[embeddedField] ?? [];
+  console.log(`[Fix] "${collName}" has single-document format with ${items.length} ${label} — converting…`);
+
+  // Delete the wrapper document
+  await db.collection(collName).deleteOne({ _id: wrapper._id });
+
+  // Insert each item as its own document
+  let ok = 0;
+  for (const item of items) {
+    const doc = cleanFn(item);
+    if (label === 'projects' && (!doc.id || !doc.projectName)) continue;
+    if (label === 'employees' && (!doc.id || !doc.name)) continue;
+    await Model.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
+    ok++;
+  }
+
+  console.log(`[Fix] Converted ${ok} individual ${label} documents in "${collName}"`);
+  return ok;
+}
+
+// ── migrate from old dashboard / dashboarddata collection ─────────────────────
 
 async function readOldDashboard() {
   const db = mongoose.connection.db;
@@ -74,94 +110,123 @@ async function readOldDashboard() {
   return null;
 }
 
-// ── public: full upsert migration (safe to run repeatedly) ───────────────────
+// ── public: force migration (safe to run repeatedly via /api/admin/migrate) ───
 
 export async function runMigration() {
-  const old = await readOldDashboard();
-  if (!old) {
-    return { ok: false, message: 'No legacy dashboard/dashboarddata collection found.' };
-  }
-
-  const { colName, employees: rawEmps, projects: rawProjs } = old;
   const log = [];
 
-  // Employees
-  let empOk = 0, empSkip = 0;
-  for (const e of rawEmps) {
-    const doc = cleanEmp(e);
-    if (!doc.id || !doc.name) { empSkip++; continue; }
-    await Employee.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
-    empOk++;
+  // Step 1: check own collections for single-document format first
+  const projFixed = await explodeSingleDocIfNeeded(Project, 'projects', cleanProj, 'projects');
+  const empFixed  = await explodeSingleDocIfNeeded(Employee, 'employees', cleanEmp, 'employees');
+  if (projFixed) log.push(`Exploded ${projFixed} projects from single-doc format`);
+  if (empFixed)  log.push(`Exploded ${empFixed} employees from single-doc format`);
+
+  // Step 2: check old dashboard collection
+  const old = await readOldDashboard();
+  if (old) {
+    const { colName, employees: rawEmps, projects: rawProjs } = old;
+
+    let empOk = 0;
+    for (const e of rawEmps) {
+      const doc = cleanEmp(e);
+      if (!doc.id || !doc.name) continue;
+      await Employee.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
+      empOk++;
+    }
+    if (empOk) log.push(`Employees upserted from "${colName}": ${empOk}`);
+
+    let projOk = 0;
+    for (const p of rawProjs) {
+      const doc = cleanProj(p);
+      if (!doc.id || !doc.projectName) continue;
+      await Project.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
+      projOk++;
+    }
+    if (projOk) {
+      await syncCompanies(rawProjs.map(cleanProj));
+      log.push(`Projects upserted from "${colName}": ${projOk}`);
+    }
+
+    log.push(`Source "${colName}" collection kept intact.`);
   }
-  log.push(`Employees: ${empOk} upserted, ${empSkip} skipped`);
 
-  // Projects
-  let projOk = 0, projSkip = 0;
-  for (const p of rawProjs) {
-    const doc = cleanProj(p);
-    if (!doc.id || !doc.projectName) { projSkip++; continue; }
-    await Project.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
-    projOk++;
+  if (log.length === 0) {
+    log.push('No legacy data found to migrate.');
   }
-  log.push(`Projects: ${projOk} upserted, ${projSkip} skipped`);
 
-  const compCount = await syncCompanies(rawProjs.map(cleanProj));
-  log.push(`Companies synced: ${compCount}`);
-
-  log.push(`Source: "${colName}" collection (untouched)`);
+  const [empCount, projCount, compCount] = await Promise.all([
+    Employee.countDocuments(),
+    Project.countDocuments(),
+    Company.countDocuments(),
+  ]);
+  log.push(`Final counts — employees: ${empCount}, projects: ${projCount}, companies: ${compCount}`);
   log.forEach((l) => console.log(`[Migrate] ${l}`));
 
-  return { ok: true, source: colName, log };
+  // Sync companies from current project set
+  const allProjects = await Project.find({}, { company: 1 }).lean();
+  await syncCompanies(allProjects);
+
+  return { ok: true, log };
 }
 
-// ── startup seed (only fills empty collections) ───────────────────────────────
+// ── startup seed ──────────────────────────────────────────────────────────────
 
 export async function seedIfEmpty() {
+  // First: fix single-document format if present (handles user's current setup)
+  await explodeSingleDocIfNeeded(Project,  'projects',  cleanProj, 'projects').catch((e) =>
+    console.error('[Seed] explode projects error:', e.message),
+  );
+  await explodeSingleDocIfNeeded(Employee, 'employees', cleanEmp,  'employees').catch((e) =>
+    console.error('[Seed] explode employees error:', e.message),
+  );
+
   const [empCount, projCount] = await Promise.all([
     Employee.countDocuments(),
     Project.countDocuments(),
   ]);
 
-  console.log(`[Seed] employees: ${empCount}, projects: ${projCount}`);
+  console.log(`[Seed] After fix — employees: ${empCount}, projects: ${projCount}`);
 
   if (empCount > 0 && projCount > 0) {
-    console.log('[Seed] Both collections populated — nothing to do');
+    console.log('[Seed] Both collections populated — done');
+    await syncCompanies(
+      await Project.find({}, { company: 1 }).lean(),
+    );
     return;
   }
 
-  // ── at least one collection is empty ────────────────────────────────────────
+  // Try old dashboard collection
   const old = await readOldDashboard();
-
   if (old) {
-    // Migrate only the empty collections
-    if (projCount === 0 && old.projects.length > 0) {
+    const { colName, employees: rawEmps, projects: rawProjs } = old;
+
+    if (projCount === 0 && rawProjs.length > 0) {
       let ok = 0;
-      for (const p of old.projects) {
+      for (const p of rawProjs) {
         const doc = cleanProj(p);
         if (!doc.id || !doc.projectName) continue;
         await Project.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
         ok++;
       }
-      await syncCompanies(old.projects.map(cleanProj));
-      console.log(`[Seed] Migrated ${ok} projects from "${old.colName}"`);
+      await syncCompanies(rawProjs.map(cleanProj));
+      console.log(`[Seed] Migrated ${ok} projects from "${colName}"`);
     }
 
-    if (empCount === 0 && old.employees.length > 0) {
+    if (empCount === 0 && rawEmps.length > 0) {
       let ok = 0;
-      for (const e of old.employees) {
+      for (const e of rawEmps) {
         const doc = cleanEmp(e);
         if (!doc.id || !doc.name) continue;
         await Employee.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
         ok++;
       }
-      console.log(`[Seed] Migrated ${ok} employees from "${old.colName}"`);
+      console.log(`[Seed] Migrated ${ok} employees from "${colName}"`);
     }
-
     return;
   }
 
-  // ── no old collection — use initial-data.json ────────────────────────────────
-  console.log('[Seed] No legacy collection found — seeding from initial-data.json');
+  // Fall back to initial-data.json
+  console.log('[Seed] No legacy data — seeding from initial-data.json');
   let seed;
   try { seed = readSeed(); } catch (err) {
     console.error('[Seed] Cannot read initial-data.json:', err.message);
@@ -174,7 +239,6 @@ export async function seedIfEmpty() {
     await Employee.insertMany(employees, { ordered: false }).catch(() => {});
     console.log(`[Seed] Inserted ${employees.length} employees from seed`);
   }
-
   if (projCount === 0 && projects.length > 0) {
     await Project.insertMany(projects, { ordered: false }).catch(() => {});
     await syncCompanies(projects);
