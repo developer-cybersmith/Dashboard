@@ -42,24 +42,36 @@ class ErrorBoundary extends Component<{ children: ReactNode }, EBState> {
   }
 }
 
-/** Prevents mouse-wheel from incrementing/decrementing number inputs. */
-function useBlockWheelOnNumberInputs() {
+/** Prevents wheel-scroll increment and auto-selects content on focus for number inputs. */
+function useNumberInputBehavior() {
   useEffect(() => {
-    const handler = (e: WheelEvent) => {
+    const onWheel = (e: WheelEvent) => {
       const el = e.target as HTMLElement;
       if (el instanceof HTMLInputElement && el.type === 'number') {
         el.blur();
         e.preventDefault();
       }
     };
-    document.addEventListener('wheel', handler, { passive: false });
-    return () => document.removeEventListener('wheel', handler);
+    // Select-all on focus so typing immediately replaces the existing value (e.g. "0")
+    const onFocus = (e: FocusEvent) => {
+      const el = e.target as HTMLElement;
+      if (el instanceof HTMLInputElement && el.type === 'number') {
+        // setTimeout lets the browser finish placing the cursor before we select
+        setTimeout(() => el.select(), 0);
+      }
+    };
+    document.addEventListener('wheel',   onWheel, { passive: false });
+    document.addEventListener('focusin', onFocus);
+    return () => {
+      document.removeEventListener('wheel',   onWheel);
+      document.removeEventListener('focusin', onFocus);
+    };
   }, []);
 }
 
 function ExcelImportListener() {
   const { importData } = useData();
-  useBlockWheelOnNumberInputs();
+  useNumberInputBehavior();
 
   useEffect(() => {
     const handler = async (e: Event) => {
