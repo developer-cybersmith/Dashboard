@@ -104,9 +104,9 @@ app.get('/api/activity', authMiddleware, async (_req, res) => {
 app.post('/api/activity', authMiddleware, async (req, res) => {
   try {
     if (!isMongoActive()) return res.json({ ok: true });
-    const { message, type = 'project', who = 'User', action = 'updated', entity = '', entityName = '' } = req.body ?? {};
+    const { message, type = 'project', who = 'User', action = 'updated', entity = '', entityName = '', changes = [] } = req.body ?? {};
     if (!message) return res.status(400).json({ error: 'message required' });
-    const doc = await Activity.create({ message, type, who, action, entity, entityName });
+    const doc = await Activity.create({ message, type, who, action, entity, entityName, changes });
     res.status(201).json(doc);
   } catch (err) {
     res.status(500).json({ error: err.message });

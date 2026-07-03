@@ -78,12 +78,13 @@ export async function resetData(): Promise<AppData> {
 }
 
 export async function postActivity(payload: {
-  message: string;
-  type: string;
-  who?: string;
-  action?: string;
-  entity?: string;
+  message:     string;
+  type:        string;
+  who?:        string;
+  action?:     string;
+  entity?:     string;
   entityName?: string;
+  changes?:    { field: string; from: string; to: string }[];
 }): Promise<void> {
   try {
     await fetch(`${API_BASE}/activity`, {

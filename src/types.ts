@@ -44,9 +44,17 @@ export interface DashboardMetrics {
   upcomingDeadlines: { projectName: string; company: string; endDate: string; daysLeft: number }[];
 }
 
+export interface FieldChange {
+  field: string;
+  from:  string;
+  to:    string;
+}
+
 export interface ActivityItem {
-  id: string;
+  id:      string;
   message: string;
-  time: string;
-  type: 'project' | 'employee' | 'salary';
+  time:    string;
+  type:    'project' | 'employee' | 'salary';
+  who?:    string;
+  changes?: FieldChange[];
 }

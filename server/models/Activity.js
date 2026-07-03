@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
 
+const changeSchema = new mongoose.Schema(
+  { field: String, from: String, to: String },
+  { _id: false },
+);
+
 const activitySchema = new mongoose.Schema(
   {
     who:        { type: String, default: 'System' },
@@ -8,6 +13,7 @@ const activitySchema = new mongoose.Schema(
     entityName: { type: String, default: '' },
     message:    { type: String, required: true },
     type:       { type: String, default: 'project' },
+    changes:    { type: [changeSchema], default: [] },
   },
   {
     collection: 'activity',

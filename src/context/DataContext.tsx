@@ -7,8 +7,9 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { ActivityItem, AppData, Employee, Project } from '../types';
+import type { ActivityItem, AppData, Employee, FieldChange, Project } from '../types';
 import { computeMetrics } from '../utils/analytics';
+import { computeDiff } from '../utils/diff';
 import { normalizeProject } from '../utils/projectProgress';
 import {
   fetchData,
@@ -65,28 +66,32 @@ function logActivity(
   setActivities: React.Dispatch<React.SetStateAction<ActivityItem[]>>,
   message: string,
   type: ActivityItem['type'],
+  changes: FieldChange[] = [],
 ) {
+  const user = getStoredUser() as { name?: string; email?: string } | null;
+  const who  = user?.name ?? user?.email ?? 'User';
+
   const item: ActivityItem = {
     id: crypto.randomUUID(),
     message,
-    time: new Date().toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
+    time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
     type,
+    who,
+    changes,
   };
-  setActivities((prev) => [item, ...prev].slice(0, 20));
+  setActivities((prev) => [item, ...prev].slice(0, 50));
 
-  // Persist to MongoDB activity collection (best-effort)
-  const user = getStoredUser() as { name?: string; email?: string } | null;
+  // Persist to MongoDB (best-effort)
   void postActivity({
     message,
     type,
-    who:    user?.name ?? user?.email ?? 'User',
-    action: message.toLowerCase().includes('added')   ? 'added'
-          : message.toLowerCase().includes('removed') ? 'deleted'
-          : 'updated',
-    entity: type === 'employee' ? 'employee' : 'project',
+    who,
+    action:     message.toLowerCase().includes('added')   ? 'added'
+              : message.toLowerCase().includes('removed') ? 'deleted'
+              : 'updated',
+    entity:     type === 'employee' ? 'employee' : 'project',
+    entityName: '',
+    changes,
   });
 }
 
@@ -125,13 +130,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateEmployee = useCallback(
     (employee: Employee) => {
+      const original = data.employees.find((e) => e.id === employee.id);
+      const changes  = original
+        ? computeDiff(original as unknown as Record<string, unknown>,
+                      employee as unknown as Record<string, unknown>)
+        : [];
       persist({
         ...data,
-        employees: data.employees.map((e) =>
-          e.id === employee.id ? employee : e,
-        ),
+        employees: data.employees.map((e) => e.id === employee.id ? employee : e),
       });
-      logActivity(setActivities, `Employee "${employee.name}" updated`, 'employee');
+      logActivity(
+        setActivities,
+        `Employee "${employee.name}" updated (${changes.length} field${changes.length !== 1 ? 's' : ''} changed)`,
+        'employee',
+        changes,
+      );
     },
     [data, persist],
   );
@@ -148,29 +161,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const deleteEmployee = useCallback(
     (id: number) => {
       const emp = data.employees.find((e) => e.id === id);
-      persist({
-        ...data,
-        employees: data.employees.filter((e) => e.id !== id),
-      });
-      if (emp) {
-        logActivity(setActivities, `Employee "${emp.name}" removed`, 'employee');
-      }
+      persist({ ...data, employees: data.employees.filter((e) => e.id !== id) });
+      if (emp) logActivity(setActivities, `Employee "${emp.name}" removed`, 'employee');
     },
     [data, persist],
   );
 
   const updateProject = useCallback(
     (project: Project) => {
+      const original = data.projects.find((p) => p.id === project.id);
+      const changes  = original
+        ? computeDiff(original as unknown as Record<string, unknown>,
+                      project as unknown as Record<string, unknown>)
+        : [];
       persist({
         ...data,
-        projects: data.projects.map((p) =>
-          p.id === project.id ? project : p,
-        ),
+        projects: data.projects.map((p) => p.id === project.id ? project : p),
       });
       logActivity(
         setActivities,
-        `Project "${project.projectName}" updated`,
+        `Project "${project.projectName}" updated (${changes.length} field${changes.length !== 1 ? 's' : ''} changed)`,
         'project',
+        changes,
       );
     },
     [data, persist],
@@ -180,11 +192,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     (project: Omit<Project, 'id'>) => {
       const newProj: Project = { ...project, id: nextId(data.projects) };
       persist({ ...data, projects: [...data.projects, newProj] });
-      logActivity(
-        setActivities,
-        `Project "${newProj.projectName}" added`,
-        'project',
-      );
+      logActivity(setActivities, `Project "${newProj.projectName}" added`, 'project');
     },
     [data, persist],
   );
@@ -192,17 +200,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const deleteProject = useCallback(
     (id: number) => {
       const proj = data.projects.find((p) => p.id === id);
-      persist({
-        ...data,
-        projects: data.projects.filter((p) => p.id !== id),
-      });
-      if (proj) {
-        logActivity(
-          setActivities,
-          `Project "${proj.projectName}" removed`,
-          'project',
-        );
-      }
+      persist({ ...data, projects: data.projects.filter((p) => p.id !== id) });
+      if (proj) logActivity(setActivities, `Project "${proj.projectName}" removed`, 'project');
     },
     [data, persist],
   );
