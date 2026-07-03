@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Lock, LogIn, Mail, ShieldCheck } from 'lucide-react';
+import { Lock, LogIn, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function LoginPage() {
@@ -45,15 +45,6 @@ export function LoginPage() {
           </div>
         </div>
 
-        <div className="login-authvr5-badge">
-          <ShieldCheck size={16} />
-          <span>Authorized users only</span>
-        </div>
-
-        <p className="login-subtitle">
-          Sign in with your authorized email and the shared dashboard password.
-        </p>
-
         <form className="login-form" onSubmit={handleSubmit}>
           <label className="login-field">
             <span>Work Email</span>
@@ -94,7 +85,7 @@ export function LoginPage() {
         </form>
 
         <p className="login-footer">
-          Only 4 authorized @cybersmithsecure.com accounts can access this dashboard.
+          CyberSmithSecure Dashboard — Internal Use Only
         </p>
       </div>
     </div>

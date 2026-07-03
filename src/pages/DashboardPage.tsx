@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -19,23 +19,24 @@ import {
   Wallet,
   TrendingUp,
   Percent,
+  Search,
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { StatCard } from '../components/StatCard';
 import { formatCurrency, formatDate, formatPercent } from '../utils/format';
 import { getProjectProgressBreakdown } from '../utils/projectProgress';
+import { projectTesterCost } from '../utils/analytics';
 
 export function DashboardPage() {
   const { data, metrics, activities } = useData();
+
+  // ── project status selection ───────────────────────────────────────────────
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (data.projects.length === 0) {
-      setSelectedProjectId(null);
-      return;
-    }
-    setSelectedProjectId((current) => {
-      if (current && data.projects.some((p) => p.id === current)) return current;
+    if (data.projects.length === 0) { setSelectedProjectId(null); return; }
+    setSelectedProjectId((cur) => {
+      if (cur && data.projects.some((p) => p.id === cur)) return cur;
       return data.projects[0].id;
     });
   }, [data.projects]);
@@ -50,6 +51,41 @@ export function DashboardPage() {
     [selectedProject],
   );
 
+  // ── search ────────────────────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const suggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return data.projects.filter(
+      (p) =>
+        p.projectName.toLowerCase().includes(q) ||
+        p.company.toLowerCase().includes(q) ||
+        p.projectLead.toLowerCase().includes(q),
+    ).slice(0, 8);
+  }, [searchQuery, data.projects]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  function selectSuggestion(id: number) {
+    setSelectedProjectId(id);
+    const proj = data.projects.find((p) => p.id === id);
+    if (proj) setSearchQuery(`${proj.company} — ${proj.projectName}`);
+    setShowSuggestions(false);
+  }
+
+  // ── stat cards ────────────────────────────────────────────────────────────
   const statCards = [
     { title: 'Total Revenue',     value: formatCurrency(metrics.totalRevenue),   change: 'From project income',                                    icon: IndianRupee, color: '#3b82f6' },
     { title: 'Total Projects',    value: String(metrics.totalProjects),           change: 'Across all companies',                                   icon: FolderKanban,color: '#a855f7' },
@@ -66,6 +102,41 @@ export function DashboardPage() {
           <h2>Dashboard Overview</h2>
           <p>Real-time summary from employees and projects data</p>
         </div>
+
+        {/* ── Global search ── */}
+        <div className="dash-search-wrap" ref={searchRef}>
+          <div className="dash-search-box">
+            <Search size={16} className="dash-search-icon" />
+            <input
+              type="text"
+              className="dash-search-input"
+              placeholder="Search project or company…"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+            />
+          </div>
+          {showSuggestions && suggestions.length > 0 && (
+            <ul className="dash-suggestions">
+              {suggestions.map((p) => (
+                <li
+                  key={p.id}
+                  className="dash-suggestion-item"
+                  onMouseDown={() => selectSuggestion(p.id)}
+                >
+                  <span className="suggestion-company">{p.company}</span>
+                  <span className="suggestion-name">{p.projectName}</span>
+                  {p.projectLead && (
+                    <span className="suggestion-lead">Lead: {p.projectLead}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       <div className="stat-grid">
@@ -81,7 +152,10 @@ export function DashboardPage() {
           <select
             className="project-select"
             value={selectedProjectId ?? ''}
-            onChange={(e) => setSelectedProjectId(Number(e.target.value))}
+            onChange={(e) => {
+              setSelectedProjectId(Number(e.target.value));
+              setSearchQuery('');
+            }}
             disabled={data.projects.length === 0}
           >
             {data.projects.length === 0 ? (
@@ -98,7 +172,7 @@ export function DashboardPage() {
 
         {selectedProject ? (
           <div className="project-status-body">
-            {/* Left: wagon wheel + completed/pending text */}
+            {/* Left: wagon wheel + completed/pending text + project cost */}
             <div className="project-status-left">
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
@@ -133,6 +207,14 @@ export function DashboardPage() {
                   <span className="work-detail-label">⏳ Pending ({100 - selectedProject.completedPercent}%)</span>
                   <p className="work-detail-text">{selectedProject.pendingWork || 'No details entered'}</p>
                 </div>
+                <div className="work-detail-row cost-detail">
+                  <span className="work-detail-label">₹ Project Income</span>
+                  <p className="work-detail-text">
+                    {selectedProject.income > 0
+                      ? formatCurrency(selectedProject.income)
+                      : 'Not specified'}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -162,8 +244,8 @@ export function DashboardPage() {
               )}
 
               <div className="manpower-footer">
-                <span>Total testers</span>
-                <strong>{selectedProject.testers.length}</strong>
+                <span>Total Tester Cost</span>
+                <strong>{formatCurrency(projectTesterCost(selectedProject))}/mo</strong>
               </div>
             </div>
           </div>
