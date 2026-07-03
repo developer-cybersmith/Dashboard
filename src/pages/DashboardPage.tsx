@@ -4,7 +4,6 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -174,29 +173,52 @@ export function DashboardPage() {
           <div className="project-status-body">
             {/* Left: wagon wheel + completed/pending text + project cost */}
             <div className="project-status-left">
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={projectProgressBreakdown}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={52}
-                    outerRadius={82}
-                    paddingAngle={2}
-                  >
-                    {projectProgressBreakdown.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
-                    formatter={(v: number) => `${v}%`}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              {/* Custom left-wheel-right layout */}
+              <div className="wagon-wheel-wrap">
+                {/* LEFT — Completed */}
+                <div className="wheel-stat wheel-stat-left">
+                  <span className="wheel-stat-pct completed-pct">
+                    {selectedProject.completedPercent}%
+                  </span>
+                  <span className="wheel-stat-label">Completed</span>
+                </div>
+
+                {/* CENTER — donut */}
+                <div className="wheel-chart-center">
+                  <ResponsiveContainer width={180} height={180}>
+                    <PieChart>
+                      <Pie
+                        data={projectProgressBreakdown}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={52}
+                        outerRadius={82}
+                        paddingAngle={2}
+                        startAngle={90}
+                        endAngle={-270}
+                      >
+                        {projectProgressBreakdown.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+                        formatter={(v: number) => `${v}%`}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* RIGHT — Pending */}
+                <div className="wheel-stat wheel-stat-right">
+                  <span className="wheel-stat-pct pending-pct">
+                    {100 - selectedProject.completedPercent}%
+                  </span>
+                  <span className="wheel-stat-label">Pending</span>
+                </div>
+              </div>
 
               <div className="project-work-details">
                 <div className="work-detail-row completed-detail">

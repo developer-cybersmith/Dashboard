@@ -1253,6 +1253,47 @@ tfoot td {
 .cost-detail      .work-detail-label { color: #3b82f6; }
 .cost-detail { background: rgba(59, 130, 246, 0.06); border-color: rgba(59, 130, 246, 0.18); }
 
+/* ── Wagon wheel left / right layout ───────────────────────────────── */
+.wagon-wheel-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  margin-bottom: 4px;
+}
+.wheel-chart-center {
+  flex-shrink: 0;
+  width: 180px;
+  height: 180px;
+}
+.wheel-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+}
+.wheel-stat-left  { align-items: flex-end;  padding-right: 16px; }
+.wheel-stat-right { align-items: flex-start; padding-left: 16px; }
+.wheel-stat-pct {
+  font-size: 28px;
+  font-weight: 800;
+  font-family: 'Space Grotesk', sans-serif;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.completed-pct { color: #22c55e; }
+.pending-pct   { color: #f97316; }
+.wheel-stat-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 /* ── Dashboard global search ─────────────────────────────────────────── */
 .dash-search-wrap {
   position: relative;
