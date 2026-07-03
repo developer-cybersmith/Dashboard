@@ -54,7 +54,7 @@ export function cleanProj(raw) {
 async function syncCompanies(projects) {
   const names = [...new Set(projects.map((p) => p.company).filter(Boolean))];
   for (const name of names) {
-    await Company.findOneAndUpdate({ name }, { name }, { upsert: true, new: true });
+    await Company.findOneAndUpdate({ name }, { name }, { upsert: true, returnDocument: 'after' });
   }
   return names.length;
 }
@@ -86,7 +86,7 @@ async function explodeSingleDocIfNeeded(Model, embeddedField, cleanFn, label) {
     const doc = cleanFn(item);
     if (label === 'projects' && (!doc.id || !doc.projectName)) continue;
     if (label === 'employees' && (!doc.id || !doc.name)) continue;
-    await Model.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
+    await Model.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, returnDocument: 'after' });
     ok++;
   }
 
@@ -130,7 +130,7 @@ export async function runMigration() {
     for (const e of rawEmps) {
       const doc = cleanEmp(e);
       if (!doc.id || !doc.name) continue;
-      await Employee.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
+      await Employee.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, returnDocument: 'after' });
       empOk++;
     }
     if (empOk) log.push(`Employees upserted from "${colName}": ${empOk}`);
@@ -139,7 +139,7 @@ export async function runMigration() {
     for (const p of rawProjs) {
       const doc = cleanProj(p);
       if (!doc.id || !doc.projectName) continue;
-      await Project.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
+      await Project.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, returnDocument: 'after' });
       projOk++;
     }
     if (projOk) {
@@ -205,7 +205,7 @@ export async function seedIfEmpty() {
       for (const p of rawProjs) {
         const doc = cleanProj(p);
         if (!doc.id || !doc.projectName) continue;
-        await Project.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
+        await Project.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, returnDocument: 'after' });
         ok++;
       }
       await syncCompanies(rawProjs.map(cleanProj));
@@ -217,7 +217,7 @@ export async function seedIfEmpty() {
       for (const e of rawEmps) {
         const doc = cleanEmp(e);
         if (!doc.id || !doc.name) continue;
-        await Employee.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, new: true });
+        await Employee.findOneAndUpdate({ id: doc.id }, doc, { upsert: true, returnDocument: 'after' });
         ok++;
       }
       console.log(`[Seed] Migrated ${ok} employees from "${colName}"`);

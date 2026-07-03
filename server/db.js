@@ -91,7 +91,7 @@ export async function writeData(data) {
     await DataModel.findOneAndUpdate(
       {},
       { $set: { employees: data.employees, projects: data.projects } },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: 'after' },
     );
     return;
   }

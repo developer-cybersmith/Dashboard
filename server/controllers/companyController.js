@@ -33,7 +33,7 @@ export async function create(req, res) {
     const company = await Company.findOneAndUpdate(
       { name },
       { name },
-      { upsert: true, new: true, projection: { _id: 0 } },
+      { upsert: true, returnDocument: 'after', projection: { _id: 0 } },
     ).lean();
 
     res.status(201).json(company);
@@ -51,7 +51,7 @@ export async function update(req, res) {
     const updated = await Company.findOneAndUpdate(
       { name: oldName },
       { name },
-      { new: true, projection: { _id: 0 } },
+      { returnDocument: 'after', projection: { _id: 0 } },
     ).lean();
 
     if (!updated) return res.status(404).json({ error: 'Company not found' });

@@ -7,7 +7,7 @@ async function syncCompany(companyName) {
     await Company.findOneAndUpdate(
       { name: companyName },
       { name: companyName },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: 'after' },
     );
   }
 }
@@ -44,7 +44,7 @@ export async function update(req, res) {
     const updated = await Project.findOneAndUpdate(
       { id: numId },
       { $set: req.body },
-      { new: true, runValidators: true, projection: { _id: 0 } },
+      { returnDocument: 'after', runValidators: true, projection: { _id: 0 } },
     ).lean();
 
     if (!updated) return res.status(404).json({ error: 'Project not found' });

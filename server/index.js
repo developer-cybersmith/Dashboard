@@ -235,7 +235,7 @@ app.put('/api/data', authMiddleware, async (req, res) => {
       // Sync employees — upsert all, delete removed
       await Promise.all(
         employees.map((e) =>
-          Employee.findOneAndUpdate({ id: e.id }, e, { upsert: true, new: true }),
+          Employee.findOneAndUpdate({ id: e.id }, e, { upsert: true, returnDocument: 'after' }),
         ),
       );
       if (employees.length > 0) {
@@ -246,7 +246,7 @@ app.put('/api/data', authMiddleware, async (req, res) => {
       // Sync projects — upsert all, delete removed
       await Promise.all(
         projects.map((p) =>
-          Project.findOneAndUpdate({ id: p.id }, p, { upsert: true, new: true }),
+          Project.findOneAndUpdate({ id: p.id }, p, { upsert: true, returnDocument: 'after' }),
         ),
       );
       if (projects.length > 0) {
@@ -258,7 +258,7 @@ app.put('/api/data', authMiddleware, async (req, res) => {
       const names = [...new Set(projects.map((p) => p.company).filter(Boolean))];
       await Promise.all(
         names.map((name) =>
-          Company.findOneAndUpdate({ name }, { name }, { upsert: true, new: true }),
+          Company.findOneAndUpdate({ name }, { name }, { upsert: true, returnDocument: 'after' }),
         ),
       );
 

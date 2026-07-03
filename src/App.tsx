@@ -42,8 +42,24 @@ class ErrorBoundary extends Component<{ children: ReactNode }, EBState> {
   }
 }
 
+/** Prevents mouse-wheel from incrementing/decrementing number inputs. */
+function useBlockWheelOnNumberInputs() {
+  useEffect(() => {
+    const handler = (e: WheelEvent) => {
+      const el = e.target as HTMLElement;
+      if (el instanceof HTMLInputElement && el.type === 'number') {
+        el.blur();
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('wheel', handler, { passive: false });
+    return () => document.removeEventListener('wheel', handler);
+  }, []);
+}
+
 function ExcelImportListener() {
   const { importData } = useData();
+  useBlockWheelOnNumberInputs();
 
   useEffect(() => {
     const handler = async (e: Event) => {

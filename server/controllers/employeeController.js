@@ -31,7 +31,7 @@ export async function update(req, res) {
     const updated = await Employee.findOneAndUpdate(
       { id: numId },
       { $set: req.body },
-      { new: true, runValidators: true, projection: { _id: 0 } },
+      { returnDocument: 'after', runValidators: true, projection: { _id: 0 } },
     ).lean();
 
     if (!updated) return res.status(404).json({ error: 'Employee not found' });

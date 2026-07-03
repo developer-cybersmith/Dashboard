@@ -98,7 +98,7 @@ async function migrate() {
 
   let compSynced = 0;
   for (const name of companyNames) {
-    await Company.findOneAndUpdate({ name }, { name }, { upsert: true, new: true });
+    await Company.findOneAndUpdate({ name }, { name }, { upsert: true, returnDocument: 'after' });
     compSynced++;
   }
   console.log(`Companies synced: ${compSynced}`);
