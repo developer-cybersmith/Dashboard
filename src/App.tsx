@@ -7,6 +7,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardPage } from './pages/DashboardPage';
 import { EmployeesPage } from './pages/EmployeesPage';
 import { ProjectsPage } from './pages/ProjectsPage';
+import { ActivityPage } from './pages/ActivityPage';
 import { LoginPage } from './pages/LoginPage';
 import { parseExcelFile } from './utils/excelImport';
 import './styles/global.css';
@@ -77,7 +78,8 @@ function AppRoutes() {
         >
           <Route index element={<DashboardPage />} />
           <Route path="employees" element={<EmployeesPage />} />
-          <Route path="projects" element={<ProjectsPage />} />
+          <Route path="projects"  element={<ProjectsPage />} />
+          <Route path="activity"  element={<ActivityPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

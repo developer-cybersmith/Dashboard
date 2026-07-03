@@ -197,7 +197,7 @@ export function DashboardPage() {
                         outerRadius={82}
                         paddingAngle={2}
                         startAngle={90}
-                        endAngle={-270}
+                        endAngle={450}
                       >
                         {projectProgressBreakdown.map((entry) => (
                           <Cell key={entry.name} fill={entry.color} />

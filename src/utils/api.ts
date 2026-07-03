@@ -77,6 +77,33 @@ export async function resetData(): Promise<AppData> {
   }
 }
 
+export async function postActivity(payload: {
+  message: string;
+  type: string;
+  who?: string;
+  action?: string;
+  entity?: string;
+  entityName?: string;
+}): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/activity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(payload),
+    });
+  } catch { /* best-effort, never crash the UI */ }
+}
+
+export async function fetchActivities(): Promise<unknown[]> {
+  try {
+    const res = await fetch(`${API_BASE}/activity`, { headers: authHeaders() });
+    if (!res.ok) return [];
+    return (await res.json()) as unknown[];
+  } catch {
+    return [];
+  }
+}
+
 export function nextId(items: { id: number }[]): number {
   if (items.length === 0) return 1;
   return Math.max(...items.map((i) => i.id)) + 1;

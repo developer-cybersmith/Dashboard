@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Users,
   FolderKanban,
+  Activity,
   Plus,
   Upload,
   Zap,
@@ -16,9 +17,10 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/',          label: 'Dashboard', icon: LayoutDashboard },
   { to: '/employees', label: 'Employees', icon: Users },
-  { to: '/projects', label: 'Projects', icon: FolderKanban },
+  { to: '/projects',  label: 'Projects',  icon: FolderKanban },
+  { to: '/activity',  label: 'Activity',  icon: Activity },
 ];
 
 const STATUS_TEXT: Record<string, string> = {

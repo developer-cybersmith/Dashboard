@@ -24,6 +24,7 @@ import { readJson, writeJson, resetJson } from './utils/jsonStore.js';
 import { Employee } from './models/Employee.js';
 import { Project }  from './models/Project.js';
 import { Company }  from './models/Company.js';
+import { Activity } from './models/Activity.js';
 
 import employeeRoutes  from './routes/employees.js';
 import projectRoutes   from './routes/projects.js';
@@ -83,6 +84,33 @@ app.get('/api/health', (_req, res) => {
     uptime:         process.uptime(),
     timestamp:      new Date().toISOString(),
   });
+});
+
+// ─── Activity log ────────────────────────────────────────────────────────────
+
+app.get('/api/activity', authMiddleware, async (_req, res) => {
+  try {
+    if (!isMongoActive()) return res.json([]);
+    const items = await Activity.find({})
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/activity', authMiddleware, async (req, res) => {
+  try {
+    if (!isMongoActive()) return res.json({ ok: true });
+    const { message, type = 'project', who = 'User', action = 'updated', entity = '', entityName = '' } = req.body ?? {};
+    if (!message) return res.status(400).json({ error: 'message required' });
+    const doc = await Activity.create({ message, type, who, action, entity, entityName });
+    res.status(201).json(doc);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ─── Admin: manual migration trigger ─────────────────────────────────────────

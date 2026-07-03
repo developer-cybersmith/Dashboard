@@ -13,10 +13,12 @@ import { normalizeProject } from '../utils/projectProgress';
 import {
   fetchData,
   nextId,
+  postActivity,
   resetData as apiReset,
   saveData as apiSave,
   type ConnectionState,
 } from '../utils/api';
+import { getStoredUser } from '../utils/authStorage';
 
 interface DataContextValue {
   data: AppData;
@@ -74,6 +76,18 @@ function logActivity(
     type,
   };
   setActivities((prev) => [item, ...prev].slice(0, 20));
+
+  // Persist to MongoDB activity collection (best-effort)
+  const user = getStoredUser() as { name?: string; email?: string } | null;
+  void postActivity({
+    message,
+    type,
+    who:    user?.name ?? user?.email ?? 'User',
+    action: message.toLowerCase().includes('added')   ? 'added'
+          : message.toLowerCase().includes('removed') ? 'deleted'
+          : 'updated',
+    entity: type === 'employee' ? 'employee' : 'project',
+  });
 }
 
 export function DataProvider({ children }: { children: ReactNode }) {
