@@ -1842,6 +1842,29 @@ tfoot td {
 }
 .currency-select:focus { outline: 2px solid var(--blue); }
 
+/* Compact currency select inside the table column */
+.currency-col-select {
+  background: var(--input-bg, #1e293b);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 6px;
+  width: 68px;
+  cursor: pointer;
+  text-align: center;
+}
+.currency-col-select:focus { outline: 2px solid var(--blue); }
+
+/* INR value column */
+.inr-value-cell { text-align: right; }
+.inr-converted  { color: #22c55e; font-weight: 700; font-size: 12.5px; }
+.inr-same       { color: var(--text-muted); font-size: 12.5px; }
+
+/* Live total highlight */
+.live-total { color: #22c55e; }
+
 .fx-conversion-box {
   display: flex;
   align-items: center;

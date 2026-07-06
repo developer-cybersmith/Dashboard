@@ -28,10 +28,10 @@ interface DataContextValue {
   connection: ConnectionState;
   loading: boolean;
   updateEmployee: (employee: Employee) => void;
-  addEmployee: (employee: Omit<Employee, 'id'>) => void;
+  addEmployee: (employee: Omit<Employee, 'id'>) => number;
   deleteEmployee: (id: number) => void;
   updateProject: (project: Project) => void;
-  addProject: (project: Omit<Project, 'id'>) => void;
+  addProject: (project: Omit<Project, 'id'>) => number;
   deleteProject: (id: number) => void;
   importData: (data: AppData) => void;
   resetToInitial: () => void;
@@ -154,6 +154,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const newEmp: Employee = { ...employee, id: nextId(data.employees) };
       persist({ ...data, employees: [...data.employees, newEmp] });
       logActivity(setActivities, `Employee "${newEmp.name}" added`, 'employee');
+      return newEmp.id;
     },
     [data, persist],
   );
@@ -193,6 +194,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const newProj: Project = { ...project, id: nextId(data.projects) };
       persist({ ...data, projects: [...data.projects, newProj] });
       logActivity(setActivities, `Project "${newProj.projectName}" added`, 'project');
+      return newProj.id;
     },
     [data, persist],
   );

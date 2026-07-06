@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Plus, Trash2, RotateCcw, CheckCircle2 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import type { Employee } from '../types';
@@ -8,9 +8,18 @@ const AUTOSAVE_MS = 1500;
 
 export function EmployeesPage() {
   const { data, metrics, updateEmployee, addEmployee, deleteEmployee, resetToInitial } = useData();
-  const [drafts, setDrafts]   = useState<Record<number, Employee>>({});
-  const [saved,  setSaved]    = useState<Record<number, boolean>>({});
-  const timers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+  const [drafts,  setDrafts]  = useState<Record<number, Employee>>({});
+  const [saved,   setSaved]   = useState<Record<number, boolean>>({});
+  const [focusId, setFocusId] = useState<number | null>(null);
+  const timers   = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+  const nameRefs = useRef<Record<number, HTMLInputElement | null>>({});
+
+  // Auto-focus the name input of a newly added employee
+  useEffect(() => {
+    if (focusId == null) return;
+    const el = nameRefs.current[focusId];
+    if (el) { el.focus(); el.select(); setFocusId(null); }
+  }, [focusId, data.employees]);
 
   const getDraft = (emp: Employee): Employee => drafts[emp.id] ?? emp;
 
@@ -45,7 +54,7 @@ export function EmployeesPage() {
         </div>
         <div className="page-actions">
           <button type="button" className="btn btn-blue"
-            onClick={() => addEmployee({ name: 'New Employee', designation: '', monthlyPay: 0 })}>
+            onClick={() => { const newId = addEmployee({ name: 'New Employee', designation: '', monthlyPay: 0 }); setFocusId(newId); }}>
             <Plus size={16} /> Add Employee
           </button>
           <button type="button" className="btn btn-outline" onClick={resetToInitial}>
@@ -81,7 +90,9 @@ export function EmployeesPage() {
                   <tr key={emp.id} className={isDirty ? 'dirty-row' : ''}>
                     <td>{idx + 1}</td>
                     <td>
-                      <input value={draft.name}
+                      <input
+                        ref={(el) => { nameRefs.current[emp.id] = el; }}
+                        value={draft.name}
                         onChange={(e) => setDraftField(emp.id, emp, 'name', e.target.value)} />
                     </td>
                     <td>
