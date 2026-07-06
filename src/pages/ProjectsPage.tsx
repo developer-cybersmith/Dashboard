@@ -38,8 +38,10 @@ export function ProjectsPage() {
 
   const timers     = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
   const rateTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
-  // refs to project-name inputs — used for auto-focus on new row
   const nameRefs   = useRef<Record<number, HTMLInputElement | null>>({});
+  // Always-current preview ref so the auto-save timer reads the latest rate
+  const previewRef = useRef(preview);
+  useEffect(() => { previewRef.current = preview; }, [preview]);
 
   // ── Auto-focus when a new project is added ──────────────────────────────
   useEffect(() => {
@@ -61,7 +63,19 @@ export function ProjectsPage() {
   };
 
   const doSave = (id: number, draft: Project) => {
-    updateProject(draft);
+    const pv       = previewRef.current[id];   // read latest preview, not stale closure
+    const currency = draft.currency ?? 'INR';
+
+    // Embed the precise converted amountINR from the live preview before persisting
+    let toSave = draft;
+    if (currency === 'INR') {
+      toSave = { ...draft, amountINR: draft.income, exchangeRate: 1, originalAmount: draft.income };
+    } else if (pv && !pv.loading && pv.amountINR > 0) {
+      toSave = { ...draft, amountINR: pv.amountINR, exchangeRate: pv.rate, originalAmount: draft.income };
+    }
+    // If preview not ready yet, leave amountINR as-is — backend will compute it
+
+    updateProject(toSave);
     setDrafts((prev) => { const n = { ...prev }; delete n[id]; return n; });
     flashSaved(id);
   };
@@ -127,19 +141,25 @@ export function ProjectsPage() {
   const addTester    = (id: number) => setDraft(id, (p) => ({ ...p, testers: [...p.testers, { name: '', monthlyPay: 0 }] }));
   const removeTester = (id: number, i: number) => setDraft(id, (p) => ({ ...p, testers: p.testers.filter((_, j) => j !== i) }));
 
-  // ── Real-time total revenue in INR (uses draft + preview values) ─────────
+  // ── Real-time total revenue in INR ────────────────────────────────────────
+  // Priority per project:
+  //   1. Live preview amountINR (most accurate, updates while user types)
+  //   2. Saved project's amountINR from data.projects (set by backend after last save)
+  //   3. Draft income (INR projects only)
   const totalIncome = data.projects.reduce((sum, p) => {
     const draft    = drafts[p.id];
     const currency = (draft ?? p).currency ?? 'INR';
-    if (draft) {
-      if (currency !== 'INR') {
-        const pv = preview[p.id];
-        if (pv && !pv.loading && pv.amountINR > 0) return sum + pv.amountINR;
-        return sum + (draft.amountINR ?? draft.income ?? 0);
-      }
-      return sum + (draft.income ?? 0);
+    const pv       = preview[p.id];
+
+    if (currency !== 'INR') {
+      // Use live preview when available
+      if (pv && !pv.loading && pv.amountINR > 0) return sum + pv.amountINR;
+      // Fall back to the saved project value (never use draft.amountINR which may be stale 0)
+      return sum + (p.amountINR || p.income || 0);
     }
-    return sum + (p.amountINR ?? p.income ?? 0);
+
+    // INR project: use draft income if editing, otherwise saved income
+    return sum + (draft?.income ?? p.income ?? 0);
   }, 0);
 
   const handleAddProject = () => {
