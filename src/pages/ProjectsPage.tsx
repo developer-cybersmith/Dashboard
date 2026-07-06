@@ -89,7 +89,12 @@ export function ProjectsPage() {
       if (result) {
         setPreview((prev) => ({
           ...prev,
-          [id]: { rate: result.rate, amountINR: Math.round(income * result.rate), loading: false, error: null },
+          [id]: {
+            rate: result.rate,
+            amountINR: parseFloat((income * result.rate).toFixed(2)),
+            loading: false,
+            error: null,
+          },
         }));
       } else {
         setPreview((prev) => ({

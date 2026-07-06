@@ -62,7 +62,8 @@ export async function convertCurrencyToINR(amount, fromCurrency) {
   }
 
   const exchangeRate = await getExchangeRate(fromCurrency);
-  const amountINR    = Math.round((Number(amount) || 0) * exchangeRate);
+  // Keep full 2-decimal paise precision — no rounding
+  const amountINR    = parseFloat(((Number(amount) || 0) * exchangeRate).toFixed(2));
   return { exchangeRate, amountINR, exchangeRateUpdatedAt: new Date() };
 }
 
