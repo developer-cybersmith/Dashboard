@@ -6,10 +6,13 @@ const MONTHS = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
+/** Returns the INR value of a project — uses amountINR when available (multi-currency). */
+const inrValue = (p: Project) => p.amountINR ?? p.income ?? 0;
+
 export function computeMetrics(data: AppData): DashboardMetrics {
   const { employees, projects } = data;
 
-  const totalRevenue = projects.reduce((sum, p) => sum + (p.income || 0), 0);
+  const totalRevenue = projects.reduce((sum, p) => sum + inrValue(p), 0);
   const totalSalaryCost = employees.reduce(
     (sum, e) => sum + (e.monthlyPay || 0),
     0,
@@ -21,7 +24,7 @@ export function computeMetrics(data: AppData): DashboardMetrics {
   const companyMap = new Map<string, number>();
   projects.forEach((p) => {
     const company = p.company || 'Others';
-    companyMap.set(company, (companyMap.get(company) || 0) + (p.income || 0));
+    companyMap.set(company, (companyMap.get(company) || 0) + inrValue(p));
   });
 
   const companyPerformance = Array.from(companyMap.entries())
@@ -81,9 +84,10 @@ function buildMonthlyTrend(
 
   const revenueByMonth = new Map<number, number>();
   projects.forEach((p) => {
-    if (!p.startDate || !p.income) return;
+    const rev = inrValue(p);
+    if (!p.startDate || !rev) return;
     const month = new Date(p.startDate).getMonth();
-    revenueByMonth.set(month, (revenueByMonth.get(month) || 0) + p.income);
+    revenueByMonth.set(month, (revenueByMonth.get(month) || 0) + rev);
   });
 
   return MONTHS.map((month, i) => ({

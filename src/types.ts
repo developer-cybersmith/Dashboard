@@ -17,6 +17,13 @@ export interface Project {
   category: string;
   projectLead: string;
   income: number;
+  // ── Multi-currency fields ──────────────────────────────────────────────
+  currency?:              string;  // ISO 4217 code, e.g. 'USD'; defaults to 'INR'
+  originalAmount?:        number;  // income in original currency
+  exchangeRate?:          number;  // 1 USD = N INR
+  amountINR?:             number;  // income converted to INR (used for all dashboard maths)
+  exchangeRateUpdatedAt?: string;  // ISO timestamp of last rate fetch
+  // ──────────────────────────────────────────────────────────────────────
   startDate: string;
   endDate: string;
   completedWork: string;

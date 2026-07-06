@@ -15,7 +15,14 @@ const projectSchema = new mongoose.Schema(
     projectName:      { type: String, required: true, trim: true },
     category:         { type: String, default: '', trim: true },
     projectLead:      { type: String, default: '', trim: true },
-    income:           { type: Number, default: 0 },
+    income:                 { type: Number, default: 0 },
+    // ── Multi-currency fields (added; existing income field unchanged) ──────
+    currency:               { type: String, default: 'INR', trim: true },
+    originalAmount:         { type: Number, default: 0 },
+    exchangeRate:           { type: Number, default: 1 },
+    amountINR:              { type: Number, default: 0 },
+    exchangeRateUpdatedAt:  { type: Date },
+    // ────────────────────────────────────────────────────────────────────────
     startDate:        { type: String, default: '' },
     endDate:          { type: String, default: '' },
     completedWork:    { type: String, default: '' },

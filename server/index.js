@@ -25,6 +25,7 @@ import { Employee } from './models/Employee.js';
 import { Project }  from './models/Project.js';
 import { Company }  from './models/Company.js';
 import { Activity } from './models/Activity.js';
+import { convertCurrencyToINR, needsConversion } from './services/currencyService.js';
 
 import employeeRoutes  from './routes/employees.js';
 import projectRoutes   from './routes/projects.js';
@@ -84,6 +85,18 @@ app.get('/api/health', (_req, res) => {
     uptime:         process.uptime(),
     timestamp:      new Date().toISOString(),
   });
+});
+
+// ─── Currency rate lookup (frontend real-time preview) ───────────────────────
+app.get('/api/currency/rate/:from', authMiddleware, async (req, res) => {
+  try {
+    const from = req.params.from.toUpperCase();
+    if (from === 'INR') return res.json({ from: 'INR', to: 'INR', rate: 1 });
+    const result = await convertCurrencyToINR(1, from);
+    res.json({ from, to: 'INR', rate: result.exchangeRate, updatedAt: result.exchangeRateUpdatedAt });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
 });
 
 // ─── Activity log ────────────────────────────────────────────────────────────
@@ -243,26 +256,65 @@ app.put('/api/data', authMiddleware, async (req, res) => {
         await Employee.deleteMany({ id: { $nin: keepIds } });
       }
 
+      // ── Currency conversion before saving projects ──────────────────────
+      // Fetch existing projects once (to check if income/currency changed)
+      const existingProjects = await Project.find(
+        { id: { $in: projects.map((p) => p.id) } },
+      ).lean();
+      const existingMap = new Map(existingProjects.map((p) => [p.id, p]));
+
+      const projectsToSave = await Promise.all(
+        projects.map(async (p) => {
+          const existing = existingMap.get(p.id);
+          const currency = p.currency || 'INR';
+
+          if (currency === 'INR') {
+            // INR: amountINR always equals income; no API call needed
+            return { ...p, currency, originalAmount: p.income, exchangeRate: 1, amountINR: p.income || 0 };
+          }
+
+          if (needsConversion(p, existing)) {
+            try {
+              const result = await convertCurrencyToINR(p.income, currency);
+              return { ...p, currency, originalAmount: p.income, ...result };
+            } catch (convErr) {
+              console.error(`[Currency] Conversion failed for project ${p.id}:`, convErr.message);
+              // Fall back: keep existing amountINR or use income
+              return { ...p, currency, originalAmount: p.income,
+                amountINR: existing?.amountINR ?? p.income,
+                exchangeRate: existing?.exchangeRate ?? 1 };
+            }
+          }
+
+          // No change in income/currency — reuse stored rate
+          return { ...p, currency, originalAmount: p.income,
+            amountINR:            existing?.amountINR            ?? p.income,
+            exchangeRate:         existing?.exchangeRate         ?? 1,
+            exchangeRateUpdatedAt: existing?.exchangeRateUpdatedAt };
+        }),
+      );
+      // ────────────────────────────────────────────────────────────────────
+
       // Sync projects — upsert all, delete removed
       await Promise.all(
-        projects.map((p) =>
+        projectsToSave.map((p) =>
           Project.findOneAndUpdate({ id: p.id }, p, { upsert: true, returnDocument: 'after' }),
         ),
       );
-      if (projects.length > 0) {
-        const keepIds = projects.map((p) => p.id);
+      if (projectsToSave.length > 0) {
+        const keepIds = projectsToSave.map((p) => p.id);
         await Project.deleteMany({ id: { $nin: keepIds } });
       }
 
       // Keep companies in sync
-      const names = [...new Set(projects.map((p) => p.company).filter(Boolean))];
+      const names = [...new Set(projectsToSave.map((p) => p.company).filter(Boolean))];
       await Promise.all(
         names.map((name) =>
           Company.findOneAndUpdate({ name }, { name }, { upsert: true, returnDocument: 'after' }),
         ),
       );
 
-      return res.json({ ok: true, saved: { employees: employees.length, projects: projects.length } });
+      return res.json({ ok: true, saved: { employees: employees.length, projects: projectsToSave.length } });
     }
 
     writeJson({ employees, projects });

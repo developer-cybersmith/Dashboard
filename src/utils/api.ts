@@ -77,6 +77,21 @@ export async function resetData(): Promise<AppData> {
   }
 }
 
+export async function fetchCurrencyRate(
+  fromCurrency: string,
+): Promise<{ rate: number; updatedAt?: string } | null> {
+  try {
+    const res = await fetch(`${API_BASE}/currency/rate/${fromCurrency}`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { rate: number; updatedAt?: string };
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 export async function postActivity(payload: {
   message:     string;
   type:        string;
