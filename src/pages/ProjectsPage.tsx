@@ -27,6 +27,10 @@ const CURRENCIES = [
 interface RatePreview { rate: number; amountINR: number; loading: boolean; error: string | null }
 const DEFAULT_PREVIEW: RatePreview = { rate: 1, amountINR: 0, loading: false, error: null };
 
+// Common engagement models — shown as suggestions, but the field stays a free
+// text input so any custom value can be entered as well ("dynamic" basis).
+const MODEL_OPTIONS = ['One-Time Assessment', 'Monthly Recurring', 'Quarterly Basis'];
+
 export function ProjectsPage() {
   const { data, metrics, updateProject, addProject, deleteProject } = useData();
 
@@ -164,7 +168,7 @@ export function ProjectsPage() {
 
   const handleAddProject = () => {
     const newId = addProject({
-      company: 'CSS', projectName: 'New Project', category: '', projectLead: '',
+      company: 'CSS', projectName: 'New Project', category: '', projectLead: '', model: '',
       income: 0, currency: 'INR', originalAmount: 0, exchangeRate: 1, amountINR: 0,
       startDate: '', endDate: '', completedWork: '', pendingWork: '', completedPercent: 0, testers: [],
     });
@@ -195,6 +199,10 @@ export function ProjectsPage() {
         <div className="inline-stat"><span>Gross Profit</span><strong>{formatCurrency(metrics.grossProfit)}</strong></div>
       </div>
 
+      <datalist id="model-options">
+        {MODEL_OPTIONS.map((m) => <option key={m} value={m} />)}
+      </datalist>
+
       <div className="panel table-panel editable-panel">
         <div className="table-wrap">
           <table className="editable-table projects-table">
@@ -204,6 +212,7 @@ export function ProjectsPage() {
                 <th>Company</th>
                 <th>Project Name</th>
                 <th>Category</th>
+                <th>Model</th>
                 <th>Project Lead</th>
                 <th>Currency</th>
                 <th>Income</th>
@@ -260,6 +269,18 @@ export function ProjectsPage() {
                         <input value={draft.category}
                           onChange={(e) => setDraft(project.id, (p) => ({ ...p, category: e.target.value }))} />
                       </td>
+
+                      {/* Engagement model — dynamic free-text with quick-pick suggestions */}
+                      <td>
+                        <input
+                          list="model-options"
+                          className="model-input"
+                          placeholder="e.g. Monthly Recurring"
+                          value={draft.model ?? ''}
+                          onChange={(e) => setDraft(project.id, (p) => ({ ...p, model: e.target.value }))}
+                        />
+                      </td>
+
                       <td>
                         <input value={draft.projectLead}
                           onChange={(e) => setDraft(project.id, (p) => ({ ...p, projectLead: e.target.value }))} />
@@ -346,7 +367,7 @@ export function ProjectsPage() {
                     {/* ── Expanded detail row: conversion panel + testers ── */}
                     {isOpen && (
                       <tr className="detail-row">
-                        <td colSpan={14}>
+                        <td colSpan={15}>
                           <div className="tester-section">
 
                             {/* Currency conversion detail */}
@@ -420,7 +441,7 @@ export function ProjectsPage() {
             </tbody>
             <tfoot>
               <tr>
-                <td colSpan={7}><strong>Total Revenue (INR)</strong></td>
+                <td colSpan={8}><strong>Total Revenue (INR)</strong></td>
                 <td colSpan={2}><strong className="live-total">{formatCurrency(totalIncome)}</strong></td>
                 <td colSpan={5} />
               </tr>

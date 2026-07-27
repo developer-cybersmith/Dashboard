@@ -21,6 +21,7 @@ import {
   Search,
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { useTheme } from '../context/ThemeContext';
 import { StatCard } from '../components/StatCard';
 import { formatCurrency, formatDate, formatPercent } from '../utils/format';
 import { getProjectProgressBreakdown } from '../utils/projectProgress';
@@ -28,6 +29,18 @@ import { projectTesterCost } from '../utils/analytics';
 
 export function DashboardPage() {
   const { data, metrics, activities } = useData();
+  const { theme } = useTheme();
+
+  // ── Theme-aware chart colours (recharts needs concrete values, not CSS vars) ──
+  const chartColors = theme === 'dark'
+    ? { grid: '#1e293b', axis: '#64748b', tooltipBg: '#1e293b', tooltipBorder: '#334155', text: '#eef2ff' }
+    : { grid: '#e2e8f0', axis: '#64748b', tooltipBg: '#ffffff', tooltipBorder: '#e2e8f0', text: '#10152b' };
+  const tooltipStyle = {
+    background: chartColors.tooltipBg,
+    border: `1px solid ${chartColors.tooltipBorder}`,
+    borderRadius: 8,
+    color: chartColors.text,
+  };
 
   // ── project status selection ───────────────────────────────────────────────
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
@@ -204,7 +217,7 @@ export function DashboardPage() {
                         ))}
                       </Pie>
                       <Tooltip
-                        contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+                        contentStyle={tooltipStyle}
                         formatter={(v: number) => `${v}%`}
                       />
                     </PieChart>
@@ -285,11 +298,11 @@ export function DashboardPage() {
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={metrics.companyPerformance} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis type="number" stroke="#64748b" fontSize={12} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
-              <YAxis type="category" dataKey="company" stroke="#64748b" fontSize={12} width={60} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+              <XAxis type="number" stroke={chartColors.axis} fontSize={12} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
+              <YAxis type="category" dataKey="company" stroke={chartColors.axis} fontSize={12} width={60} />
               <Tooltip
-                contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+                contentStyle={tooltipStyle}
                 formatter={(value: number) => formatCurrency(value)}
               />
               <Bar dataKey="revenue" fill="#3b82f6" radius={[0, 4, 4, 0]} />
@@ -303,11 +316,11 @@ export function DashboardPage() {
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={metrics.salaryDistribution}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-              <XAxis dataKey="name" stroke="#64748b" fontSize={10} angle={-30} textAnchor="end" height={50} />
-              <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+              <XAxis dataKey="name" stroke={chartColors.axis} fontSize={10} angle={-30} textAnchor="end" height={50} />
+              <YAxis stroke={chartColors.axis} fontSize={12} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
               <Tooltip
-                contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+                contentStyle={tooltipStyle}
                 formatter={(value: number) => formatCurrency(value)}
               />
               <Bar dataKey="salary" fill="#22c55e" radius={[4, 4, 0, 0]} />

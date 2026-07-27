@@ -13,6 +13,7 @@ export function normalizeProject(project: unknown): Project {
     projectName:      String(p.projectName      ?? ''),
     category:         String(p.category         ?? ''),
     projectLead:      String(p.projectLead      ?? ''),
+    model:            String(p.model            ?? ''),
     income:                 Number(p.income)                || 0,
     currency:               String(p.currency               ?? 'INR'),
     originalAmount:         Number(p.originalAmount)        || 0,

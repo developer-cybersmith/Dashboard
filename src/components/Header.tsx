@@ -1,7 +1,8 @@
-import { RefreshCw, Wifi, WifiOff, LogOut, Menu } from 'lucide-react';
+import { RefreshCw, Wifi, WifiOff, LogOut, Menu, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { useTheme } from '../context/ThemeContext';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -19,6 +20,7 @@ function initials(name: string) {
 export function Header({ onMenuToggle }: HeaderProps) {
   const { connection, refresh } = useData();
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -63,6 +65,15 @@ export function Header({ onMenuToggle }: HeaderProps) {
           onClick={refresh}
         >
           <RefreshCw size={18} />
+        </button>
+        <button
+          type="button"
+          className="icon-btn theme-toggle-btn"
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          onClick={toggleTheme}
+        >
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
         <div className="user-profile">
           <div className="avatar">{user ? initials(user.name) : 'MA'}</div>

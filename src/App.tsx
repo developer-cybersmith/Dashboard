@@ -1,6 +1,7 @@
 import { Component, useEffect, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { DataProvider, useData } from './context/DataContext';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -29,9 +30,9 @@ class ErrorBoundary extends Component<{ children: ReactNode }, EBState> {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100vh', gap:16, fontFamily:'sans-serif', background:'#0f172a', color:'#e2e8f0' }}>
-          <h2 style={{ color:'#f97316' }}>Something went wrong</h2>
-          <p style={{ color:'#94a3b8', maxWidth:400, textAlign:'center' }}>{this.state.message}</p>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100vh', gap:16, fontFamily:'sans-serif', background:'#f2f4fa', color:'#10152b' }}>
+          <h2 style={{ color:'#ea580c' }}>Something went wrong</h2>
+          <p style={{ color:'#5c6480', maxWidth:400, textAlign:'center' }}>{this.state.message}</p>
           <button onClick={() => window.location.reload()} style={{ padding:'8px 20px', borderRadius:8, border:'none', background:'#3b82f6', color:'#fff', cursor:'pointer' }}>
             Reload page
           </button>
@@ -118,11 +119,13 @@ function AppRoutes() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

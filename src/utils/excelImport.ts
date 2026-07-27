@@ -51,9 +51,12 @@ function parseProjects(rows: Record<string, unknown>[]): Project[] {
   };
 
   for (const row of rows) {
-    if (row['Company ']) company = String(row['Company ']).trim();
+    const rowCompany = row['Company '] ?? row['Company'];
+    if (rowCompany) company = String(rowCompany).trim();
     if (row['Project Name']) projectName = String(row['Project Name']).trim();
-    if (row['Unnamed: 2']) category = String(row['Unnamed: 2']).trim();
+
+    const rowCategory = row['Category'] ?? row['Unnamed: 2'];
+    if (rowCategory) category = String(rowCategory).trim();
 
     const key = `${company}|${projectName}`;
     if (!current || `${current.company}|${current.projectName}` !== key) {
@@ -63,6 +66,7 @@ function parseProjects(rows: Record<string, unknown>[]): Project[] {
         company,
         projectName,
         category,
+        model: row['Model'] ? String(row['Model']).trim() : '',
         projectLead: row['Project Lead']
           ? String(row['Project Lead']).trim()
           : '',

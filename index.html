@@ -1,9 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
     <title>CyberSmithSecure Dashboard</title>
+    <script>
+      (function () {
+        // Light is the default for every visitor. Dark applies only when the user
+        // has explicitly toggled it and that choice is stored.
+        try {
+          var stored = localStorage.getItem('css-dashboard-theme');
+          document.documentElement.setAttribute(
+            'data-theme',
+            stored === 'dark' ? 'dark' : 'light',
+          );
+          document
+            .querySelector('meta[name="color-scheme"]')
+            ?.setAttribute('content', stored === 'dark' ? 'dark light' : 'light');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

@@ -6,7 +6,61 @@
   padding: 0;
 }
 
-:root {
+/* ==========================================================================
+   Theming — light is the default; [data-theme="dark"] overrides tokens.
+   All surface / text / border colours are driven by these custom properties
+   so the whole app (including tables, inputs, dropdowns, charts) reacts to
+   the theme toggle without any structural markup changes.
+   ========================================================================== */
+:root,
+[data-theme='light'] {
+  --bg: #f2f4fa;
+  --bg-2: #ffffff;
+  --panel: rgba(255, 255, 255, 0.72);
+  --panel-strong: rgba(255, 255, 255, 0.88);
+  --panel-border: rgba(21, 30, 55, 0.1);
+  --panel-border-hover: rgba(59, 111, 255, 0.45);
+  --text: #10152b;
+  --text-muted: #5c6480;
+  --blue: #3b6fff;
+  --purple: #9333ea;
+  --cyan: #0e93ac;
+  --green: #16a34a;
+  --orange: #ea580c;
+  --pink: #db2777;
+  --sidebar-width: 250px;
+  --header-height: 68px;
+  --radius: 18px;
+  --glow-blue: 0 0 24px rgba(59, 111, 255, 0.18);
+
+  /* Surfaces / inputs / overlays */
+  --input-bg: #ffffff;
+  --input-overlay: rgba(16, 21, 43, 0.045);
+  --surface-solid: #ffffff;
+  --dropdown-bg: #ffffff;
+  --table-header-bg: rgba(255, 255, 255, 0.94);
+  --scrollbar-thumb: rgba(30, 41, 59, 0.18);
+  --scrollbar-thumb-hover: rgba(30, 41, 59, 0.32);
+  --chart-grid: #e2e8f0;
+  --chart-axis: #64748b;
+  --tooltip-bg: #ffffff;
+  --tooltip-border: #e2e8f0;
+  --aurora-opacity: 0.22;
+  --aurora-blend: normal;
+  --grid-line: rgba(15, 23, 42, 0.045);
+  --login-card-bg: rgba(255, 255, 255, 0.78);
+  --shadow-color: rgba(15, 23, 42, 0.12);
+  --sidebar-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(240, 242, 250, 0.96));
+  --header-bg: rgba(255, 255, 255, 0.72);
+  --brand-text-gradient: linear-gradient(90deg, #10152b, #3b6fff);
+
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
   --bg: #05060a;
   --bg-2: #080a12;
   --panel: rgba(255, 255, 255, 0.04);
@@ -21,14 +75,33 @@
   --green: #34d399;
   --orange: #fb923c;
   --pink: #f472b6;
-  --sidebar-width: 250px;
-  --header-height: 68px;
-  --radius: 18px;
   --glow-blue: 0 0 24px rgba(79, 140, 255, 0.35);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: var(--text);
-  background: var(--bg);
+
+  --input-bg: #1e293b;
+  --input-overlay: rgba(0, 0, 0, 0.25);
+  --surface-solid: #0f172a;
+  --dropdown-bg: #1a2035;
+  --table-header-bg: rgba(8, 10, 18, 0.88);
+  --scrollbar-thumb: rgba(120, 140, 200, 0.25);
+  --scrollbar-thumb-hover: rgba(120, 140, 200, 0.45);
+  --chart-grid: #1e293b;
+  --chart-axis: #64748b;
+  --tooltip-bg: #1e293b;
+  --tooltip-border: #334155;
+  --aurora-opacity: 0.5;
+  --aurora-blend: screen;
+  --grid-line: rgba(255, 255, 255, 0.025);
+  --login-card-bg: rgba(255, 255, 255, 0.05);
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --sidebar-bg: linear-gradient(180deg, rgba(14, 18, 32, 0.85), rgba(6, 8, 14, 0.9));
+  --header-bg: rgba(6, 8, 14, 0.6);
+  --brand-text-gradient: linear-gradient(90deg, #fff, #a9c4ff);
+
   color-scheme: dark;
+}
+
+* {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
 }
 
 html,
@@ -62,13 +135,13 @@ a {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(120, 140, 200, 0.25);
+  background: var(--scrollbar-thumb);
   border-radius: 10px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(120, 140, 200, 0.45);
+  background: var(--scrollbar-thumb-hover);
   background-clip: padding-box;
 }
 
@@ -85,8 +158,8 @@ a {
   position: absolute;
   border-radius: 50%;
   filter: blur(120px);
-  opacity: 0.5;
-  mix-blend-mode: screen;
+  opacity: var(--aurora-opacity);
+  mix-blend-mode: var(--aurora-blend);
 }
 
 .aurora-1 {
@@ -128,8 +201,8 @@ a {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 46px 46px;
   mask-image: radial-gradient(circle at 50% 30%, black, transparent 85%);
 }
@@ -144,7 +217,7 @@ a {
 
 .sidebar {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, rgba(14, 18, 32, 0.85), rgba(6, 8, 14, 0.9));
+  background: var(--sidebar-bg);
   backdrop-filter: blur(18px);
   border-right: 1px solid var(--panel-border);
   display: flex;
@@ -183,7 +256,7 @@ a {
   font-weight: 700;
   font-family: 'Orbitron', sans-serif;
   letter-spacing: 0.04em;
-  background: linear-gradient(90deg, #fff, #a9c4ff);
+  background: var(--brand-text-gradient);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -334,7 +407,7 @@ a {
   align-items: center;
   justify-content: space-between;
   padding: 0 26px;
-  background: rgba(6, 8, 14, 0.6);
+  background: var(--header-bg);
   backdrop-filter: blur(14px);
   position: sticky;
   top: 0;
@@ -595,7 +668,7 @@ a {
 .stat-card:hover {
   transform: translateY(-4px);
   border-color: var(--panel-border-hover);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4), 0 0 22px color-mix(in srgb, var(--accent) 30%, transparent);
+  box-shadow: 0 14px 40px var(--shadow-color), 0 0 22px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 @keyframes fadeUp {
@@ -684,7 +757,7 @@ a {
 .panel-tag {
   font-size: 11px;
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--input-overlay);
   padding: 5px 10px;
   border-radius: 8px;
   border: 1px solid var(--panel-border);
@@ -703,8 +776,8 @@ a {
   padding: 7px 10px;
   border-radius: 8px;
   border: 1px solid var(--panel-border);
-  background: rgba(15, 23, 42, 0.85);
-  color: var(--text-primary);
+  background: var(--input-bg);
+  color: var(--text);
   font-size: 12px;
   font-family: inherit;
   cursor: pointer;
@@ -763,6 +836,27 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
+}
+
+/* ---------- Sticky table headers (Project List / Employee List) ---------- */
+/* Gives the editable tables their own scroll region so the header row stays
+   pinned in place while the body scrolls — independent of theme. */
+.editable-panel .table-wrap {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.editable-panel thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--table-header-bg);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 1px 0 var(--panel-border);
+}
+
+.editable-panel thead th:first-child {
+  z-index: 4;
 }
 
 tbody tr {
@@ -938,7 +1032,7 @@ tfoot td {
 .editable-table input {
   width: 100%;
   min-width: 80px;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--input-overlay);
   border: 1px solid transparent;
   border-radius: 8px;
   padding: 7px 9px;
@@ -954,12 +1048,15 @@ tfoot td {
 .editable-table input:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.15);
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--input-bg);
 }
 
 .editable-table input[type='date'] {
   min-width: 140px;
-  color-scheme: dark;
+}
+
+.model-input {
+  min-width: 170px;
 }
 
 .dirty-row {
@@ -992,7 +1089,7 @@ tfoot td {
 }
 
 .detail-row td {
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--input-overlay);
   padding: 18px;
 }
 
@@ -1029,7 +1126,7 @@ tfoot td {
 
 .tester-row input {
   flex: 1;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--input-overlay);
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   padding: 7px 9px;
@@ -1067,7 +1164,7 @@ tfoot td {
 }
 
 .preview-cards div {
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--input-overlay);
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   padding: 14px 18px;
@@ -1335,13 +1432,13 @@ tfoot td {
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  background: #1a2035;
+  background: var(--dropdown-bg);
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   list-style: none;
   z-index: 200;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px var(--shadow-color);
   max-height: 300px;
   overflow-y: auto;
 }
@@ -1666,12 +1763,12 @@ tfoot td {
   position: relative;
   z-index: 2;
   width: min(420px, 100%);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--login-card-bg);
   backdrop-filter: blur(18px);
   border: 1px solid var(--panel-border);
   border-radius: 22px;
   padding: 32px 28px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 0 40px rgba(79, 140, 255, 0.12);
+  box-shadow: 0 24px 60px var(--shadow-color), 0 0 40px rgba(79, 140, 255, 0.12);
 }
 
 .login-brand {
@@ -1720,7 +1817,7 @@ tfoot td {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(0, 0, 0, 0.28);
+  background: var(--input-overlay);
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   padding: 11px 14px;
@@ -1831,7 +1928,7 @@ tfoot td {
   font-weight: 600;
 }
 .currency-select {
-  background: var(--input-bg, #1e293b);
+  background: var(--input-bg);
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   color: var(--text);
@@ -1844,7 +1941,7 @@ tfoot td {
 
 /* Compact currency select inside the table column */
 .currency-col-select {
-  background: var(--input-bg, #1e293b);
+  background: var(--input-bg);
   border: 1px solid var(--panel-border);
   border-radius: 6px;
   color: var(--text);

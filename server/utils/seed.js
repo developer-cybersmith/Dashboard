@@ -36,6 +36,7 @@ export function cleanProj(raw) {
     projectName:      String(p.projectName        ?? ''),
     category:         String(p.category           ?? ''),
     projectLead:      String(p.projectLead        ?? ''),
+    model:            String(p.model              ?? ''),
     income:           Number(p.income)            || 0,
     startDate:        String(p.startDate          ?? ''),
     endDate:          String(p.endDate            ?? ''),

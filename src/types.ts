@@ -16,6 +16,9 @@ export interface Project {
   projectName: string;
   category: string;
   projectLead: string;
+  // Engagement model — free-text (dynamic) but commonly one of:
+  // "One-Time Assessment", "Monthly Recurring", "Quarterly Basis"
+  model?: string;
   income: number;
   // ── Multi-currency fields ──────────────────────────────────────────────
   currency?:              string;  // ISO 4217 code, e.g. 'USD'; defaults to 'INR'

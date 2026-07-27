@@ -15,6 +15,9 @@ const projectSchema = new mongoose.Schema(
     projectName:      { type: String, required: true, trim: true },
     category:         { type: String, default: '', trim: true },
     projectLead:      { type: String, default: '', trim: true },
+    // Engagement model — dynamic free-text input, e.g. "One-Time Assessment",
+    // "Monthly Recurring", "Quarterly Basis", or any custom value.
+    model:            { type: String, default: '', trim: true },
     income:                 { type: Number, default: 0 },
     // ── Multi-currency fields (added; existing income field unchanged) ──────
     currency:               { type: String, default: 'INR', trim: true },

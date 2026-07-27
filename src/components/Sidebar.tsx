@@ -94,6 +94,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               projectName: 'New Project',
               category: '',
               projectLead: '',
+              model: '',
               income: 0,
               startDate: '',
               endDate: '',
