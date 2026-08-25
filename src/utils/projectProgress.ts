@@ -1,4 +1,5 @@
 import type { Project, ProjectTester } from '../types';
+import { netOfIncome } from './tax';
 
 export function clampPercent(value: number): number {
   return Math.min(100, Math.max(0, Math.round(value)));
@@ -7,6 +8,15 @@ export function clampPercent(value: number): number {
 /** Ensures every project has all required fields with safe defaults. */
 export function normalizeProject(project: unknown): Project {
   const p = (project ?? {}) as Record<string, unknown>;
+  const income = Number(p.income) || 0;
+  const currency = String(p.currency ?? 'INR');
+  const exchangeRate = Number(p.exchangeRate) || 1;
+  const storedINR = Number(p.amountINR);
+  // INR: Income + GST − TDS; Non-INR: income × rate (no GST/TDS)
+  const defaultINR = currency === 'INR'
+    ? netOfIncome(income, 'INR')
+    : parseFloat((netOfIncome(income, currency) * exchangeRate).toFixed(2));
+
   return {
     id:               Number(p.id)              || 0,
     company:          String(p.company          ?? ''),
@@ -14,11 +24,11 @@ export function normalizeProject(project: unknown): Project {
     category:         String(p.category         ?? ''),
     projectLead:      String(p.projectLead      ?? ''),
     model:            String(p.model            ?? ''),
-    income:                 Number(p.income)                || 0,
-    currency:               String(p.currency               ?? 'INR'),
-    originalAmount:         Number(p.originalAmount)        || 0,
-    exchangeRate:           Number(p.exchangeRate)          || 1,
-    amountINR:              Number(p.amountINR)             || (Number(p.income) || 0),
+    income,
+    currency,
+    originalAmount:         Number(p.originalAmount)        || income,
+    exchangeRate,
+    amountINR:              storedINR > 0 ? storedINR : defaultINR,
     exchangeRateUpdatedAt:  p.exchangeRateUpdatedAt ? String(p.exchangeRateUpdatedAt) : undefined,
     startDate:              String(p.startDate        ?? ''),
     endDate:          String(p.endDate          ?? ''),

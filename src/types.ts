@@ -42,6 +42,8 @@ export interface AppData {
 
 export interface DashboardMetrics {
   totalRevenue: number;
+  totalGst: number;
+  totalTds: number;
   totalProjects: number;
   totalEmployees: number;
   totalSalaryCost: number;

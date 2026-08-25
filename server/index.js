@@ -26,6 +26,7 @@ import { Project }  from './models/Project.js';
 import { Company }  from './models/Company.js';
 import { Activity } from './models/Activity.js';
 import { convertCurrencyToINR, needsConversion } from './services/currencyService.js';
+import { netOfIncome } from './utils/tax.js';
 
 import employeeRoutes  from './routes/employees.js';
 import projectRoutes   from './routes/projects.js';
@@ -268,27 +269,30 @@ app.put('/api/data', authMiddleware, async (req, res) => {
           const existing = existingMap.get(p.id);
           const currency = p.currency || 'INR';
 
+          // INR: amountINR = Income + GST − TDS
+          // Non-INR: amountINR = income converted to INR (no GST/TDS)
+          const netAmount = netOfIncome(p.income, currency);
+
           if (currency === 'INR') {
-            // INR: amountINR always equals income; no API call needed
-            return { ...p, currency, originalAmount: p.income, exchangeRate: 1, amountINR: p.income || 0 };
+            return { ...p, currency, originalAmount: p.income, exchangeRate: 1, amountINR: netAmount };
           }
 
           if (needsConversion(p, existing)) {
             try {
-              const result = await convertCurrencyToINR(p.income, currency);
+              const result = await convertCurrencyToINR(netAmount, currency);
               return { ...p, currency, originalAmount: p.income, ...result };
             } catch (convErr) {
               console.error(`[Currency] Conversion failed for project ${p.id}:`, convErr.message);
               // Fall back: keep existing amountINR or use income
               return { ...p, currency, originalAmount: p.income,
-                amountINR: existing?.amountINR ?? p.income,
+                amountINR: existing?.amountINR ?? netAmount,
                 exchangeRate: existing?.exchangeRate ?? 1 };
             }
           }
 
           // No change in income/currency — reuse stored rate
           return { ...p, currency, originalAmount: p.income,
-            amountINR:            existing?.amountINR            ?? p.income,
+            amountINR:            existing?.amountINR            ?? netAmount,
             exchangeRate:         existing?.exchangeRate         ?? 1,
             exchangeRateUpdatedAt: existing?.exchangeRateUpdatedAt };
         }),

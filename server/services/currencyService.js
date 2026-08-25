@@ -73,7 +73,7 @@ export async function convertCurrencyToINR(amount, fromCurrency) {
  */
 export function needsConversion(incoming, existing) {
   if (!existing) return true;
-  if (!incoming.currency || incoming.currency === 'INR') return false; // INR is always income
+  if (!incoming.currency || incoming.currency === 'INR') return false; // INR uses local net formula
   return (
     incoming.income    !== existing.income    ||
     incoming.currency  !== existing.currency  ||
