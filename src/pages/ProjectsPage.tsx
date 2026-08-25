@@ -6,6 +6,7 @@ import { formatCurrency } from '../utils/format';
 import { projectTesterCost } from '../utils/analytics';
 import { clampPercent } from '../utils/projectProgress';
 import { fetchCurrencyRate } from '../utils/api';
+import { gstOf, tdsOf, netOfIncome } from '../utils/tax';
 
 const AUTOSAVE_MS = 1500;
 
@@ -69,11 +70,12 @@ export function ProjectsPage() {
   const doSave = (id: number, draft: Project) => {
     const pv       = previewRef.current[id];   // read latest preview, not stale closure
     const currency = draft.currency ?? 'INR';
+    // INR: Income+GST−TDS; Non-INR: income converted (no GST/TDS)
+    const baseAmt  = netOfIncome(draft.income, currency);
 
-    // Embed the precise converted amountINR from the live preview before persisting
     let toSave = draft;
     if (currency === 'INR') {
-      toSave = { ...draft, amountINR: draft.income, exchangeRate: 1, originalAmount: draft.income };
+      toSave = { ...draft, amountINR: baseAmt, exchangeRate: 1, originalAmount: draft.income };
     } else if (pv && !pv.loading && pv.amountINR > 0) {
       toSave = { ...draft, amountINR: pv.amountINR, exchangeRate: pv.rate, originalAmount: draft.income };
     }
@@ -94,11 +96,12 @@ export function ProjectsPage() {
     });
   };
 
-  // Live rate preview (debounced 800 ms) — shown in the income cell and expanded panel
+  // Live rate preview — INR uses Income+GST−TDS; FX converts income only (no GST/TDS)
   const scheduleRatePreview = (id: number, currency: string, income: number) => {
     clearTimeout(rateTimers.current[id]);
+    const baseAmt = netOfIncome(income, currency);
     if (!currency || currency === 'INR') {
-      setPreview((prev) => ({ ...prev, [id]: { rate: 1, amountINR: income, loading: false, error: null } }));
+      setPreview((prev) => ({ ...prev, [id]: { rate: 1, amountINR: baseAmt, loading: false, error: null } }));
       return;
     }
     setPreview((prev) => ({ ...prev, [id]: { ...(prev[id] ?? DEFAULT_PREVIEW), loading: true, error: null } }));
@@ -109,7 +112,7 @@ export function ProjectsPage() {
           ...prev,
           [id]: {
             rate: result.rate,
-            amountINR: parseFloat((income * result.rate).toFixed(2)),
+            amountINR: parseFloat((baseAmt * result.rate).toFixed(2)),
             loading: false,
             error: null,
           },
@@ -145,26 +148,45 @@ export function ProjectsPage() {
   const addTester    = (id: number) => setDraft(id, (p) => ({ ...p, testers: [...p.testers, { name: '', monthlyPay: 0 }] }));
   const removeTester = (id: number, i: number) => setDraft(id, (p) => ({ ...p, testers: p.testers.filter((_, j) => j !== i) }));
 
-  // ── Real-time total revenue in INR ────────────────────────────────────────
-  // Priority per project:
-  //   1. Live preview amountINR (most accurate, updates while user types)
-  //   2. Saved project's amountINR from data.projects (set by backend after last save)
-  //   3. Draft income (INR projects only)
-  const totalIncome = data.projects.reduce((sum, p) => {
-    const draft    = drafts[p.id];
-    const currency = (draft ?? p).currency ?? 'INR';
-    const pv       = preview[p.id];
+  // ── Real-time totals in INR ───────────────────────────────────────────────
+  // INR projects: Income + GST − TDS; FX projects: converted income only (no GST/TDS)
+  const { totalIncome, totalGstLive, totalTdsLive } = data.projects.reduce(
+    (acc, p) => {
+      const draft    = drafts[p.id];
+      const income   = draft?.income ?? p.income ?? 0;
+      const currency = (draft ?? p).currency ?? 'INR';
+      const pv       = preview[p.id];
+      const rate     = currency === 'INR'
+        ? 1
+        : (pv && !pv.loading && pv.rate > 0
+            ? pv.rate
+            : ((draft ?? p).exchangeRate && (draft ?? p).exchangeRate! > 0
+                ? (draft ?? p).exchangeRate!
+                : 1));
 
-    if (currency !== 'INR') {
-      // Use live preview when available
-      if (pv && !pv.loading && pv.amountINR > 0) return sum + pv.amountINR;
-      // Fall back to the saved project value (never use draft.amountINR which may be stale 0)
-      return sum + (p.amountINR || p.income || 0);
-    }
+      // GST/TDS only for INR
+      const gst = gstOf(income, currency);
+      const tds = tdsOf(income, currency);
 
-    // INR project: use draft income if editing, otherwise saved income
-    return sum + (draft?.income ?? p.income ?? 0);
-  }, 0);
+      let revenue: number;
+      if (currency !== 'INR') {
+        if (pv && !pv.loading && pv.amountINR > 0) revenue = pv.amountINR;
+        else if (rate !== 1) revenue = parseFloat((income * rate).toFixed(2));
+        else revenue = p.amountINR || income;
+      } else {
+        revenue = netOfIncome(income, 'INR');
+      }
+
+      return {
+        totalIncome:  acc.totalIncome  + revenue,
+        totalGstLive: acc.totalGstLive + gst,
+        totalTdsLive: acc.totalTdsLive + tds,
+      };
+    },
+    { totalIncome: 0, totalGstLive: 0, totalTdsLive: 0 },
+  );
+
+  const liveGrossProfit = totalIncome - metrics.totalSalaryCost;
 
   const handleAddProject = () => {
     const newId = addProject({
@@ -190,13 +212,27 @@ export function ProjectsPage() {
         </div>
       </div>
 
-      <div className="inline-stats">
-        <div className="inline-stat"><span>Total Projects</span><strong>{metrics.totalProjects}</strong></div>
+      <div className="inline-stats projects-summary-stats">
+        <div className="inline-stat">
+          <span>Total Projects</span>
+          <strong>{metrics.totalProjects}</strong>
+        </div>
         <div className="inline-stat">
           <span>Total Revenue (INR)</span>
           <strong className="live-total">{formatCurrency(totalIncome)}</strong>
         </div>
-        <div className="inline-stat"><span>Gross Profit</span><strong>{formatCurrency(metrics.grossProfit)}</strong></div>
+        <div className="inline-stat">
+          <span>Gross Profit</span>
+          <strong>{formatCurrency(liveGrossProfit)}</strong>
+        </div>
+        <div className="inline-stat">
+          <span>GST Collected</span>
+          <strong>{formatCurrency(totalGstLive)}</strong>
+        </div>
+        <div className="inline-stat">
+          <span>TDS Deducted</span>
+          <strong>{formatCurrency(totalTdsLive)}</strong>
+        </div>
       </div>
 
       <datalist id="model-options">
@@ -216,6 +252,8 @@ export function ProjectsPage() {
                 <th>Project Lead</th>
                 <th>Currency</th>
                 <th>Income</th>
+                <th>GST (18%)</th>
+                <th>TDS (10%)</th>
                 <th>INR Value</th>
                 <th>Start Date</th>
                 <th>End Date</th>
@@ -234,11 +272,18 @@ export function ProjectsPage() {
                 const pv       = preview[project.id];
                 const currency = draft.currency ?? 'INR';
                 const hasFx    = currency !== 'INR';
+                const gstAmt   = gstOf(draft.income, currency);
+                const tdsAmt   = tdsOf(draft.income, currency);
+                const baseAmt  = netOfIncome(draft.income, currency);
 
-                // INR value to show in dedicated column
+                // INR: Income + GST − TDS; FX: converted income only
                 const inrDisplay = hasFx
-                  ? (pv && !pv.loading && pv.amountINR > 0 ? pv.amountINR : (draft.amountINR ?? draft.income))
-                  : draft.income;
+                  ? (pv && !pv.loading && pv.amountINR > 0
+                      ? pv.amountINR
+                      : draft.exchangeRate && draft.exchangeRate > 0
+                        ? parseFloat((baseAmt * draft.exchangeRate).toFixed(2))
+                        : (draft.amountINR ?? baseAmt))
+                  : baseAmt;
 
                 return (
                   <Fragment key={project.id}>
@@ -313,7 +358,21 @@ export function ProjectsPage() {
                           }} />
                       </td>
 
-                      {/* INR value column — live preview */}
+                      {/* GST = 18% of income — INR only */}
+                      <td className="tax-value-cell">
+                        {hasFx
+                          ? <span className="tax-na">—</span>
+                          : <span>{formatCurrency(gstAmt)}</span>}
+                      </td>
+
+                      {/* TDS = 10% of income — INR only */}
+                      <td className="tax-value-cell">
+                        {hasFx
+                          ? <span className="tax-na">—</span>
+                          : <span>{formatCurrency(tdsAmt)}</span>}
+                      </td>
+
+                      {/* INR Value: Income+GST−TDS for INR; converted income for FX */}
                       <td className="inr-value-cell">
                         {hasFx ? (
                           pv?.loading
@@ -322,7 +381,7 @@ export function ProjectsPage() {
                               ? <span className="fx-error">—</span>
                               : <span className="inr-converted">{formatCurrency(inrDisplay ?? 0)}</span>
                         ) : (
-                          <span className="inr-same">{formatCurrency(draft.income)}</span>
+                          <span className="inr-same">{formatCurrency(baseAmt)}</span>
                         )}
                       </td>
 
@@ -367,7 +426,7 @@ export function ProjectsPage() {
                     {/* ── Expanded detail row: conversion panel + testers ── */}
                     {isOpen && (
                       <tr className="detail-row">
-                        <td colSpan={15}>
+                        <td colSpan={17}>
                           <div className="tester-section">
 
                             {/* Currency conversion detail */}
@@ -382,7 +441,7 @@ export function ProjectsPage() {
                                   ) : pv && pv.rate > 0 ? (
                                     <>
                                       <span className="fx-item">
-                                        <span className="fx-label">Original</span>
+                                        <span className="fx-label">Income</span>
                                         <span className="fx-val">{currency} {(draft.income ?? 0).toLocaleString('en-IN')}</span>
                                       </span>
                                       <span className="fx-sep">·</span>
@@ -442,6 +501,7 @@ export function ProjectsPage() {
             <tfoot>
               <tr>
                 <td colSpan={8}><strong>Total Revenue (INR)</strong></td>
+                <td colSpan={2} />
                 <td colSpan={2}><strong className="live-total">{formatCurrency(totalIncome)}</strong></td>
                 <td colSpan={5} />
               </tr>
@@ -464,8 +524,8 @@ export function ProjectsPage() {
               <span>{p.currency && p.currency !== 'INR' ? p.currency : '₹'}</span>
               <span>
                 {p.currency && p.currency !== 'INR'
-                  ? `${(p.income ?? 0).toLocaleString('en-IN')} → ${formatCurrency(p.amountINR ?? p.income)}`
-                  : formatCurrency(p.income)}
+                  ? `${(p.income ?? 0).toLocaleString('en-IN')} → ${formatCurrency(p.amountINR ?? netOfIncome(p.income, p.currency))}`
+                  : formatCurrency(p.amountINR ?? netOfIncome(p.income, 'INR'))}
               </span>
             </li>
           ))}

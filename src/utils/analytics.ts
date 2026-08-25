@@ -1,18 +1,46 @@
 import type { AppData, DashboardMetrics, Project } from '../types';
 import { daysUntil } from './format';
+import { gstOf, tdsOf, netOfIncome } from './tax';
 
 const MONTHS = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
-/** Returns the INR value of a project — uses amountINR when available (multi-currency). */
-const inrValue = (p: Project) => p.amountINR ?? p.income ?? 0;
+/** FX rate used to convert project amounts into INR. */
+function projectRate(p: Project): number {
+  const currency = p.currency || 'INR';
+  if (currency === 'INR') return 1;
+  return p.exchangeRate && p.exchangeRate > 0 ? p.exchangeRate : 1;
+}
+
+/**
+ * INR revenue for a project:
+ * - INR:     Income + GST(18%) − TDS(10%)
+ * - Non-INR: Income converted to INR (no GST/TDS)
+ */
+const inrValue = (p: Project) => {
+  const currency = p.currency || 'INR';
+  const base = netOfIncome(p.income, currency);
+  const rate = projectRate(p);
+  if (currency !== 'INR' && rate === 1 && p.amountINR != null && p.amountINR > 0) {
+    return p.amountINR;
+  }
+  return parseFloat((base * rate).toFixed(2));
+};
+
+/** GST collected — INR projects only. */
+const gstInr = (p: Project) => gstOf(p.income, p.currency || 'INR');
+
+/** TDS deducted — INR projects only. */
+const tdsInr = (p: Project) => tdsOf(p.income, p.currency || 'INR');
 
 export function computeMetrics(data: AppData): DashboardMetrics {
   const { employees, projects } = data;
 
   const totalRevenue = projects.reduce((sum, p) => sum + inrValue(p), 0);
+  const totalGst = projects.reduce((sum, p) => sum + gstInr(p), 0);
+  const totalTds = projects.reduce((sum, p) => sum + tdsInr(p), 0);
   const totalSalaryCost = employees.reduce(
     (sum, e) => sum + (e.monthlyPay || 0),
     0,
@@ -60,6 +88,8 @@ export function computeMetrics(data: AppData): DashboardMetrics {
 
   return {
     totalRevenue,
+    totalGst,
+    totalTds,
     totalProjects: projects.length,
     totalEmployees: employees.length,
     totalSalaryCost,
