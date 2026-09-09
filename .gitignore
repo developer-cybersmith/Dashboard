@@ -12,6 +12,8 @@ coverage/
 
 # Local app data
 data/db.json
+data/project-documents.json
+data/uploads/
 
 # TypeScript cache
 tsconfig.tsbuildinfo

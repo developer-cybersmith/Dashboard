@@ -21,6 +21,8 @@ import {
   Search,
   Receipt,
   Landmark,
+  HandCoins,
+  Hourglass,
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useTheme } from '../context/ThemeContext';
@@ -99,18 +101,20 @@ export function DashboardPage() {
     setShowSuggestions(false);
   }
 
-  // ── stat cards (2 rows × 4) ───────────────────────────────────────────────
+  // ── stat cards (2 rows × 5) ───────────────────────────────────────────────
   const statCards = [
     // Row 1
-    { title: 'Total Revenue',      value: formatCurrency(metrics.totalRevenue),   change: 'Income + GST − TDS',                                      icon: IndianRupee, color: '#3b82f6' },
-    { title: 'Total GST Collected',value: formatCurrency(metrics.totalGst),       change: '18% — INR projects only',                                icon: Receipt,     color: '#8b5cf6' },
-    { title: 'Total TDS Deducted', value: formatCurrency(metrics.totalTds),       change: '10% — INR projects only',                                icon: Landmark,    color: '#f59e0b' },
-    { title: 'Total Salary Cost',  value: formatCurrency(metrics.totalSalaryCost),change: 'Monthly payroll',                                         icon: Wallet,      color: '#f97316' },
+    { title: 'Total Revenue',           value: formatCurrency(metrics.totalRevenue),          change: 'Income + GST − TDS (INR)',                              icon: IndianRupee, color: '#3b82f6' },
+    { title: 'Total GST Collected',     value: formatCurrency(metrics.totalGst),              change: '18% — INR projects only',                              icon: Receipt,     color: '#8b5cf6' },
+    { title: 'Total TDS Deducted',      value: formatCurrency(metrics.totalTds),              change: '10% — INR projects only',                              icon: Landmark,    color: '#f59e0b' },
+    { title: 'Total Payments Received', value: formatCurrency(metrics.totalPaymentsReceived), change: 'From Invoices tracking',                               icon: HandCoins,   color: '#10b981' },
+    { title: 'Total Pendings',          value: formatCurrency(metrics.totalPendings),         change: 'Total Payment − Received',                             icon: Hourglass,   color: '#ef4444' },
     // Row 2
-    { title: 'Gross Profit',       value: formatCurrency(metrics.grossProfit),    change: metrics.grossProfit >= 0 ? 'Positive margin' : 'Deficit',  icon: TrendingUp,  color: '#14b8a6' },
-    { title: 'Profit Margin',      value: formatPercent(metrics.profitMargin),    change: 'Revenue vs salary',                                       icon: Percent,     color: '#ec4899' },
-    { title: 'Total Projects',     value: String(metrics.totalProjects),          change: 'Across all companies',                                    icon: FolderKanban,color: '#a855f7' },
-    { title: 'Total Employees',    value: String(metrics.totalEmployees),         change: 'Active payroll',                                          icon: Users,       color: '#22c55e' },
+    { title: 'Total Salary Cost',       value: formatCurrency(metrics.totalSalaryCost),       change: 'Monthly payroll',                                      icon: Wallet,      color: '#f97316' },
+    { title: 'Gross Profit',            value: formatCurrency(metrics.grossProfit),           change: metrics.grossProfit >= 0 ? 'Positive margin' : 'Deficit',icon: TrendingUp,  color: '#14b8a6' },
+    { title: 'Profit Margin',           value: formatPercent(metrics.profitMargin),           change: 'Revenue vs salary',                                    icon: Percent,     color: '#ec4899' },
+    { title: 'Total Projects',          value: String(metrics.totalProjects),                 change: 'Across all companies',                                 icon: FolderKanban,color: '#a855f7' },
+    { title: 'Total Employees',         value: String(metrics.totalEmployees),                change: 'Active payroll',                                       icon: Users,       color: '#22c55e' },
   ];
 
   return (
@@ -429,6 +433,8 @@ export function DashboardPage() {
             <div><dt>Total Revenue</dt><dd>{formatCurrency(metrics.totalRevenue)}</dd></div>
             <div><dt>Total GST</dt><dd>{formatCurrency(metrics.totalGst)}</dd></div>
             <div><dt>Total TDS</dt><dd>{formatCurrency(metrics.totalTds)}</dd></div>
+            <div><dt>Payments Received</dt><dd>{formatCurrency(metrics.totalPaymentsReceived)}</dd></div>
+            <div><dt>Total Pendings</dt><dd>{formatCurrency(metrics.totalPendings)}</dd></div>
             <div><dt>Salary Cost</dt><dd>{formatCurrency(metrics.totalSalaryCost)}</dd></div>
             <div><dt>Gross Profit</dt><dd className={metrics.grossProfit >= 0 ? 'positive' : 'negative'}>{formatCurrency(metrics.grossProfit)}</dd></div>
             <div><dt>Profit Margin</dt><dd>{formatPercent(metrics.profitMargin)}</dd></div>

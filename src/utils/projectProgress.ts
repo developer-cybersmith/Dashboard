@@ -41,6 +41,9 @@ export function normalizeProject(project: unknown): Project {
                             monthlyPay: Number(t?.monthlyPay) || 0,
                           }))
                         : [],
+    paymentReceived:  Math.max(0, Number(p.paymentReceived) || 0),
+    invoiceComment:   String(p.invoiceComment ?? ''),
+    poComment:        String(p.poComment ?? ''),
   };
 }
 

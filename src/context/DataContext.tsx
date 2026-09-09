@@ -89,7 +89,10 @@ function logActivity(
     action:     message.toLowerCase().includes('added')   ? 'added'
               : message.toLowerCase().includes('removed') ? 'deleted'
               : 'updated',
-    entity:     type === 'employee' ? 'employee' : 'project',
+    entity:     type === 'employee' ? 'employee'
+              : type === 'invoice'  ? 'invoice'
+              : type === 'po'       ? 'po'
+              : 'project',
     entityName: '',
     changes,
   });
