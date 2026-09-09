@@ -20,6 +20,8 @@ const TYPE_COLOR: Record<string, string> = {
   project:  '#a855f7',
   employee: '#22c55e',
   salary:   '#f97316',
+  invoice:  '#3b82f6',
+  po:       '#14b8a6',
 };
 
 function timeAgo(iso?: string): string {

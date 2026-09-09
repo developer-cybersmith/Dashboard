@@ -38,6 +38,10 @@ export function cleanProj(raw) {
     projectLead:      String(p.projectLead        ?? ''),
     model:            String(p.model              ?? ''),
     income:           Number(p.income)            || 0,
+    currency:         String(p.currency           ?? 'INR'),
+    originalAmount:   Number(p.originalAmount)    || Number(p.income) || 0,
+    exchangeRate:     Number(p.exchangeRate)      || 1,
+    amountINR:        Number(p.amountINR)         || 0,
     startDate:        String(p.startDate          ?? ''),
     endDate:          String(p.endDate            ?? ''),
     completedWork:    String(p.completedWork      ?? (status ? String(status) : '')),
@@ -49,6 +53,9 @@ export function cleanProj(raw) {
           monthlyPay: Number(t?.monthlyPay) || 0,
         }))
       : [],
+    paymentReceived: Number(p.paymentReceived) || 0,
+    invoiceComment:  String(p.invoiceComment  ?? ''),
+    poComment:       String(p.poComment       ?? ''),
   };
 }
 

@@ -27,11 +27,13 @@ import { Company }  from './models/Company.js';
 import { Activity } from './models/Activity.js';
 import { convertCurrencyToINR, needsConversion } from './services/currencyService.js';
 import { netOfIncome } from './utils/tax.js';
+import { ProjectDocument } from './models/ProjectDocument.js';
 
 import employeeRoutes  from './routes/employees.js';
 import projectRoutes   from './routes/projects.js';
 import companyRoutes   from './routes/companies.js';
 import dashboardRoutes from './routes/dashboard.js';
+import documentRoutes  from './routes/documents.js';
 
 import {
   authenticate,
@@ -168,12 +170,24 @@ app.get('/api/admin/status', authMiddleware, async (_req, res) => {
     return res.status(503).json({ error: 'MongoDB not connected' });
   }
   try {
-    const [employees, projects, companies] = await Promise.all([
+    const [employees, projects, companies, projectDocuments, activity] = await Promise.all([
       Employee.countDocuments(),
       Project.countDocuments(),
       Company.countDocuments(),
+      ProjectDocument.countDocuments(),
+      Activity.countDocuments(),
     ]);
-    res.json({ employees, projects, companies });
+    res.json({
+      employees,
+      projects,
+      companies,
+      projectDocuments,
+      activity,
+      newSegments: {
+        projects: ['paymentReceived', 'invoiceComment', 'poComment'],
+        collections: ['project_documents', 'activity'],
+      },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -194,6 +208,8 @@ app.use('/api/employees', mongoOnly, employeeRoutes);
 app.use('/api/projects',  mongoOnly, projectRoutes);
 app.use('/api/companies', mongoOnly, companyRoutes);
 app.use('/api/dashboard', mongoOnly, dashboardRoutes);
+// Invoice / PO PDF uploads work with both Mongo and JSON-file storage
+app.use('/api/documents', documentRoutes);
 
 // ─── Legacy /api/data  (frontend compatibility) ───────────────────────────────
 

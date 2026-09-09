@@ -120,6 +120,92 @@ export async function fetchActivities(): Promise<unknown[]> {
   }
 }
 
+export type DocKind = 'invoice' | 'po';
+
+export async function fetchProjectDocuments(
+  kind: DocKind,
+  projectId?: number,
+): Promise<import('../types').ProjectDocumentFile[]> {
+  try {
+    const url =
+      projectId != null
+        ? `${API_BASE}/documents/${kind}/project/${projectId}`
+        : `${API_BASE}/documents/${kind}`;
+    const res = await fetch(url, { headers: authHeaders() });
+    if (!res.ok) return [];
+    return (await res.json()) as import('../types').ProjectDocumentFile[];
+  } catch {
+    return [];
+  }
+}
+
+export async function uploadProjectDocument(
+  kind: DocKind,
+  projectId: number,
+  file: File,
+): Promise<{ ok: true; doc: import('../types').ProjectDocumentFile } | { ok: false; error: string }> {
+  try {
+    const body = new FormData();
+    body.append('file', file);
+    const res = await fetch(`${API_BASE}/documents/${kind}/project/${projectId}`, {
+      method: 'POST',
+      headers: { ...authHeaders() },
+      body,
+    });
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { error?: string };
+      return { ok: false, error: err.error || `HTTP ${res.status}` };
+    }
+    const doc = (await res.json()) as import('../types').ProjectDocumentFile;
+    return { ok: true, doc };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Upload failed' };
+  }
+}
+
+export async function deleteProjectDocument(
+  fileId: number,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/documents/file/${fileId}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { error?: string };
+      return { ok: false, error: err.error || `HTTP ${res.status}` };
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Delete failed' };
+  }
+}
+
+export function projectDocumentUrl(fileId: number): string {
+  return `${API_BASE}/documents/file/${fileId}`;
+}
+
+export async function patchProjectBilling(
+  projectId: number,
+  patch: { paymentReceived?: number; invoiceComment?: string; poComment?: string },
+): Promise<{ ok: true; project: import('../types').Project } | { ok: false; error: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/documents/billing/${projectId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(patch),
+    });
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { error?: string };
+      return { ok: false, error: err.error || `HTTP ${res.status}` };
+    }
+    const project = (await res.json()) as import('../types').Project;
+    return { ok: true, project };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Update failed' };
+  }
+}
+
 export function nextId(items: { id: number }[]): number {
   if (items.length === 0) return 1;
   return Math.max(...items.map((i) => i.id)) + 1;

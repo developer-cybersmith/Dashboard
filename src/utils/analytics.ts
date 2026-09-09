@@ -35,12 +35,29 @@ const gstInr = (p: Project) => gstOf(p.income, p.currency || 'INR');
 /** TDS deducted — INR projects only. */
 const tdsInr = (p: Project) => tdsOf(p.income, p.currency || 'INR');
 
+/** Contracted / total payment for a project (INR Value). */
+export function totalPaymentOf(p: Project): number {
+  return inrValue(p);
+}
+
+/** Amount received so far (INR). */
+export function paymentReceivedOf(p: Project): number {
+  return Math.max(0, Number(p.paymentReceived) || 0);
+}
+
+/** Pending = Total Payment − Payment Received (never negative). */
+export function pendingAmountOf(p: Project): number {
+  return Math.max(0, totalPaymentOf(p) - paymentReceivedOf(p));
+}
+
 export function computeMetrics(data: AppData): DashboardMetrics {
   const { employees, projects } = data;
 
   const totalRevenue = projects.reduce((sum, p) => sum + inrValue(p), 0);
   const totalGst = projects.reduce((sum, p) => sum + gstInr(p), 0);
   const totalTds = projects.reduce((sum, p) => sum + tdsInr(p), 0);
+  const totalPaymentsReceived = projects.reduce((sum, p) => sum + paymentReceivedOf(p), 0);
+  const totalPendings = projects.reduce((sum, p) => sum + pendingAmountOf(p), 0);
   const totalSalaryCost = employees.reduce(
     (sum, e) => sum + (e.monthlyPay || 0),
     0,
@@ -90,6 +107,8 @@ export function computeMetrics(data: AppData): DashboardMetrics {
     totalRevenue,
     totalGst,
     totalTds,
+    totalPaymentsReceived,
+    totalPendings,
     totalProjects: projects.length,
     totalEmployees: employees.length,
     totalSalaryCost,

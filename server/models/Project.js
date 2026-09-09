@@ -32,6 +32,10 @@ const projectSchema = new mongoose.Schema(
     pendingWork:      { type: String, default: '' },
     completedPercent: { type: Number, default: 0, min: 0, max: 100 },
     testers:          { type: [testerSchema], default: [] },
+    // Payment tracking (INR) — used by Invoices / dashboard pendings
+    paymentReceived:  { type: Number, default: 0 },
+    invoiceComment:   { type: String, default: '', trim: true },
+    poComment:        { type: String, default: '', trim: true },
   },
   {
     collection: 'projects',

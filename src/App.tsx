@@ -8,6 +8,8 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardPage } from './pages/DashboardPage';
 import { EmployeesPage } from './pages/EmployeesPage';
 import { ProjectsPage } from './pages/ProjectsPage';
+import { InvoicesPage } from './pages/InvoicesPage';
+import { ProjectPOsPage } from './pages/ProjectPOsPage';
 import { ActivityPage } from './pages/ActivityPage';
 import { LoginPage } from './pages/LoginPage';
 import { parseExcelFile } from './utils/excelImport';
@@ -108,6 +110,8 @@ function AppRoutes() {
           <Route index element={<DashboardPage />} />
           <Route path="employees" element={<EmployeesPage />} />
           <Route path="projects"  element={<ProjectsPage />} />
+          <Route path="invoices"  element={<InvoicesPage />} />
+          <Route path="project-pos" element={<ProjectPOsPage />} />
           <Route path="activity"  element={<ActivityPage />} />
         </Route>
       </Route>

@@ -33,6 +33,21 @@ export interface Project {
   pendingWork: string;
   completedPercent: number;
   testers: ProjectTester[];
+  /** Amount received from client (INR). Pending = totalPayment − paymentReceived. */
+  paymentReceived?: number;
+  invoiceComment?: string;
+  poComment?: string;
+}
+
+export interface ProjectDocumentFile {
+  id: number;
+  projectId: number;
+  kind: 'invoice' | 'po';
+  originalName: string;
+  size: number;
+  mimeType: string;
+  uploadedBy: string;
+  uploadedAt: string;
 }
 
 export interface AppData {
@@ -44,6 +59,8 @@ export interface DashboardMetrics {
   totalRevenue: number;
   totalGst: number;
   totalTds: number;
+  totalPaymentsReceived: number;
+  totalPendings: number;
   totalProjects: number;
   totalEmployees: number;
   totalSalaryCost: number;
@@ -66,7 +83,7 @@ export interface ActivityItem {
   id:      string;
   message: string;
   time:    string;
-  type:    'project' | 'employee' | 'salary';
+  type:    'project' | 'employee' | 'salary' | 'invoice' | 'po';
   who?:    string;
   changes?: FieldChange[];
 }

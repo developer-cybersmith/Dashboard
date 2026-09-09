@@ -3,7 +3,7 @@ import { Plus, Trash2, ChevronDown, ChevronUp, CheckCircle2, RefreshCw } from 'l
 import { useData } from '../context/DataContext';
 import type { Project, ProjectTester } from '../types';
 import { formatCurrency } from '../utils/format';
-import { projectTesterCost } from '../utils/analytics';
+import { projectTesterCost, totalPaymentOf, paymentReceivedOf, pendingAmountOf } from '../utils/analytics';
 import { clampPercent } from '../utils/projectProgress';
 import { fetchCurrencyRate } from '../utils/api';
 import { gstOf, tdsOf, netOfIncome } from '../utils/tax';
@@ -193,6 +193,7 @@ export function ProjectsPage() {
       company: 'CSS', projectName: 'New Project', category: '', projectLead: '', model: '',
       income: 0, currency: 'INR', originalAmount: 0, exchangeRate: 1, amountINR: 0,
       startDate: '', endDate: '', completedWork: '', pendingWork: '', completedPercent: 0, testers: [],
+      paymentReceived: 0, invoiceComment: '', poComment: '',
     });
     setFocusId(newId);
     setExpanded(newId); // also expand the new row
@@ -515,21 +516,33 @@ export function ProjectsPage() {
         <div className="preview-cards">
           <div><span>Revenue (INR)</span><strong>{formatCurrency(totalIncome)}</strong></div>
           <div><span>Projects</span><strong>{metrics.totalProjects}</strong></div>
-          <div><span>Gross Profit</span><strong>{formatCurrency(metrics.grossProfit)}</strong></div>
+          <div><span>Gross Profit</span><strong>{formatCurrency(liveGrossProfit)}</strong></div>
         </div>
-        <ul className="mini-project-list">
-          {data.projects.slice(0, 5).map((p) => (
-            <li key={p.id}>
-              <span>{p.projectName}</span>
-              <span>{p.currency && p.currency !== 'INR' ? p.currency : '₹'}</span>
-              <span>
-                {p.currency && p.currency !== 'INR'
-                  ? `${(p.income ?? 0).toLocaleString('en-IN')} → ${formatCurrency(p.amountINR ?? netOfIncome(p.income, p.currency))}`
-                  : formatCurrency(p.amountINR ?? netOfIncome(p.income, 'INR'))}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <div className="table-wrap preview-payments-wrap">
+          <table className="editable-table preview-payments-table">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Total Payment</th>
+                <th>Payment Received</th>
+                <th>Pending Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.projects.map((p) => (
+                <tr key={p.id}>
+                  <td>
+                    <div>{p.company || '—'}</div>
+                    <div className="muted-tiny">{p.projectName}</div>
+                  </td>
+                  <td>{formatCurrency(totalPaymentOf(p))}</td>
+                  <td>{formatCurrency(paymentReceivedOf(p))}</td>
+                  <td>{formatCurrency(pendingAmountOf(p))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

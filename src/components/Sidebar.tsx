@@ -4,6 +4,8 @@ import {
   Users,
   FolderKanban,
   Activity,
+  FileText,
+  ClipboardList,
   Plus,
   Upload,
   Zap,
@@ -17,10 +19,12 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { to: '/',          label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/employees', label: 'Employees', icon: Users },
-  { to: '/projects',  label: 'Projects',  icon: FolderKanban },
-  { to: '/activity',  label: 'Activity',  icon: Activity },
+  { to: '/',           label: 'Dashboard',    icon: LayoutDashboard },
+  { to: '/employees',  label: 'Employees',    icon: Users },
+  { to: '/projects',   label: 'Projects',     icon: FolderKanban },
+  { to: '/invoices',   label: 'Invoices',     icon: FileText },
+  { to: '/project-pos',label: "Project PO's", icon: ClipboardList },
+  { to: '/activity',   label: 'Activity',     icon: Activity },
 ];
 
 const STATUS_TEXT: Record<string, string> = {
@@ -102,6 +106,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               pendingWork: '',
               completedPercent: 0,
               testers: [],
+              paymentReceived: 0,
+              invoiceComment: '',
+              poComment: '',
             });
             onClose();
           }}

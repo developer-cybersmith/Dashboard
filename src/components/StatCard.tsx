@@ -14,7 +14,7 @@ export function StatCard({ title, value, change, icon: Icon, color }: StatCardPr
     <div className="stat-card" style={{ '--accent': color } as CSSProperties}>
       <div className="stat-card-top">
         <div className="stat-icon" style={{ background: `${color}22`, color }}>
-          <Icon size={14} />
+          <Icon size={12} />
         </div>
         {change && <span className="stat-change positive">{change}</span>}
       </div>

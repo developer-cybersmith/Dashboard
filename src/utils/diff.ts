@@ -19,6 +19,9 @@ const FIELD_LABELS: Record<string, string> = {
   category:         'Category',
   projectLead:      'Project Lead',
   income:           'Income',
+  paymentReceived:  'Payment Received',
+  invoiceComment:   'Invoice Comment',
+  poComment:        'PO Comment',
   startDate:        'Start Date',
   endDate:          'End Date',
   completedWork:    'Completed Work',
@@ -26,7 +29,7 @@ const FIELD_LABELS: Record<string, string> = {
   completedPercent: '% Done',
 };
 
-const CURRENCY_FIELDS = new Set(['income', 'monthlyPay']);
+const CURRENCY_FIELDS = new Set(['income', 'monthlyPay', 'paymentReceived']);
 const PERCENT_FIELDS  = new Set(['completedPercent']);
 
 const SKIP_FIELDS = new Set([
